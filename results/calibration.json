@@ -1,0 +1,97 @@
+{
+  "brief": "planet-formation-and-spin-orbit-dynamics--how-does-stellar-spin-evolve-during-lidov-kozai-migration.md",
+  "brief_sha256": "11966760d9b6fc5e008207e46cd21e6b5dfb3c2160a9453c8ac546143dd1c3c3",
+  "sig_figs": 2,
+  "checks": [
+    {
+      "id": "C1_spin_precession",
+      "quantity": "alpha_0 prefactor [2pi/yr]",
+      "source": "S15 Eq. alpha0 (=S16 Eq. alpha0)",
+      "published": 1.19e-08,
+      "computed": 1.1892357395058223e-08,
+      "rel_diff": -0.0006422357093931463,
+      "agrees": true
+    },
+    {
+      "id": "C2_epsilon_prefactor",
+      "quantity": "epsilon prefactor",
+      "source": "S15 Eq. epsilon",
+      "published": 1.17,
+      "computed": 1.1678615195079196,
+      "rel_diff": -0.0018277611043421294,
+      "agrees": true
+    },
+    {
+      "id": "C3_triple_adiabaticity",
+      "quantity": "A17 script-A prefactor",
+      "source": "A17 Eq. Aparameter",
+      "published": 58.0,
+      "computed": 58.084225820746276,
+      "rel_diff": 0.0014521693232116828,
+      "agrees": true
+    },
+    {
+      "id": "C4_gr_strength",
+      "quantity": "eps_GR prefactor",
+      "source": "A17 Eq. epsilon_SRFs",
+      "published": 0.03,
+      "computed": 0.029611886141307053,
+      "rel_diff": -0.012937128623098149,
+      "agrees": true
+    },
+    {
+      "id": "C5_perturber_distance",
+      "quantity": "max a_out,eff [AU] (constants)",
+      "source": "A17 Eq. maxaout_zero_ecc",
+      "published": 19.6,
+      "computed": 19.659485553515182,
+      "rel_diff": 0.003034977220162327,
+      "agrees": true
+    },
+    {
+      "id": "C6_perturber_rounded",
+      "quantity": "max a_out,eff [AU] (3e-2 prefactor)",
+      "source": "A17 Eq. maxaout_zero_ecc",
+      "published": 19.6,
+      "computed": 19.57433820584432,
+      "rel_diff": -0.0013092752120245077,
+      "agrees": true
+    },
+    {
+      "id": "C7_kozai_window",
+      "quantity": "(cos I0)_+ at eta = eps = 0",
+      "source": "A17 Eq. Icrit vs sqrt(3/5)",
+      "published": 0.7745966692414834,
+      "computed": 0.7745966692414834,
+      "rel_diff": 0.0,
+      "agrees": true
+    },
+    {
+      "id": "C8_shape_factor",
+      "quantity": "script-N(85 deg, e0 = 0.01)",
+      "source": "S15 Eq. nmax and text",
+      "published": 0.98,
+      "computed": 0.979219804213344,
+      "rel_diff": -0.0007961181496489722,
+      "agrees": true
+    },
+    {
+      "id": "C9_anderson_precession",
+      "quantity": "A16 Omega_ps prefactor [1/yr]",
+      "source": "A16 Eq. OmegaPS",
+      "published": 1.64e-07,
+      "computed": 1.6524941741633274e-07,
+      "rel_diff": 0.007618398880077537,
+      "agrees": false
+    },
+    {
+      "id": "C10_anderson_adiabaticity",
+      "quantity": "A16 A_0 prefactor",
+      "source": "A16 Eq. adiabatic",
+      "published": 0.07,
+      "computed": 0.07013535560328278,
+      "rel_diff": 0.001933651475468201,
+      "agrees": true
+    }
+  ]
+}

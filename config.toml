@@ -1,0 +1,13 @@
+# Settings only. No secrets: those live in secrets.env.
+
+[brief]
+# The research brief this work answers. Its SHA-256 signs every findings file.
+path = "docs/brief/planet-formation-and-spin-orbit-dynamics--how-does-stellar-spin-evolve-during-lidov-kozai-migration.md"
+
+[calibration]
+# Work plan step 2: a computed prefactor passes when it matches the published one to this many significant figures.
+sig_figs = 2
+results = "results/calibration.json"
+
+[secrets]
+# None used.
