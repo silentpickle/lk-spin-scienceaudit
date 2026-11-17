@@ -21,7 +21,11 @@ The brief's work plan, step by step:
 | 2 | Recompute the published prefactors | done; all 5 asked for reproduce | [01](docs/findings/01-definitions-and-calibration.md) |
 | 3 | Reproduce Storch & Lai 2015's bifurcation diagram and sections | done; analytic chaos-boundary curve does not reproduce | [02](docs/findings/02-dynamics-calibration.md) |
 | 4 | Reproduce Storch et al. 2016's $\theta_{sl,f}$ vs $P_\star$ with short-range forces and tides | done; all five outcome classes at the published periods; minutes, not CPU-hours | [03](docs/findings/03-tidal-migration-reproduction.md) |
-| 5–11 | Regime map, sub-questions SQ1–SQ5, N-body spot check | not started | — |
+| 5 | Regime map from 1028 systems; outcome classifier checked by hand | done; S16's map 64% accurate vs 47% for $\theta_{lb}^0$ alone; chaos set by a third parameter $\hat\Omega_L$ | [04](docs/findings/04-regime-map-and-classifier.md) |
+| 6 (SQ1) | The map under back-reaction, octupole and spin-down | done; **negative result**: with back-reaction the map is no better than $\theta_{lb}^0$ alone, and advection all but vanishes | [05](docs/findings/05-sq1-full-physics-and-sq5-feedback.md) |
+| 10 (SQ5) | Back-reaction threshold | done; class changes exceed 10% at $S/L\approx0.11$ and 50% at 0.59 | [05](docs/findings/05-sq1-full-physics-and-sq5-feedback.md) |
+| 11 | N-body spot check (REBOUND) | running | — |
+| 7–9 (SQ2–SQ4) | Theory: bimodal peaks, capture probabilities, chaos mechanism | not started; see [handoff](docs/HANDOFF-steps-7-9.md) | — |
 
 ## Quick start
 

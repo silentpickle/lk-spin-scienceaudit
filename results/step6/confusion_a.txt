@@ -1,0 +1,5 @@
+predicted \ observed (v2)      I     II    III     IV      V  total
+                         I    401      5     88      0      0    494
+                        II      3     91     16      0      0    110
+                        IV      0     43    214    162      5    424
+family agreement: 654 / 1028 = 0.636

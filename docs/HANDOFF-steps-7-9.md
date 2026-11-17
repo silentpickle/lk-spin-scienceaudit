@@ -46,7 +46,7 @@ Runs are cheap: one migrating system takes 0.5–10 s. The full step 5 sample of
 - **SQ3: N labels exist.** The winding $W$ per LK cycle locks to the resonance order during advection. `regime.best_lock_fraction` gives the $N$ and its locked fraction per system. Classes IV.1, IV.2, IV.3 and IV.4+ have 68, 51, 22 and 21 systems in step 5.
 - **The analytic tools assume the orbit shape is frozen and has no SRFs.** `shape.py` builds shape functions from S15's analytic orbit, with no SRFs and fixed $a$. SQ2–SQ4 in the realistic setting need them for the SRF-modified orbit, and as they drift while $a$ decays. The brief's "usual failure" warns that freezing the shape functions while $a$ decays overstates advection. One route is to build $\beta,\gamma,\psi$ numerically from `secular.py`'s first-cycle (or per-epoch) orbit. Validate against `shape.py` in the no-SRF limit first.
 - **Use the right paper's normalisations.** Our $N_{\max,0}$ and $\bar{\mathcal A}_0$ coefficients are about 5% below S16's quoted values, while their ratio agrees to 1% (findings 03). Use our own consistently, and don't mix in S16's numbers.
-- **A16 has three equation-level errors.** Its tidal-bulge precession is inconsistent by a factor of 2 (findings 03). Its printed octupole $d\mathbf L/dt$ has $(\mathbf e\cdot\hat L_b)$ where $(\mathbf e\cdot\hat e_b)$ belongs, in two places (findings 06). Neither changes steps 7–9 directly. They're a reminder to check every transcribed equation against a conservation law.
+- **A16 has three equation-level errors.** Its tidal-bulge precession is inconsistent by a factor of 2 (findings 03). Its printed octupole $d\mathbf L/dt$ has $(\mathbf e\cdot\hat L_b)$ where $(\mathbf e\cdot\hat e_b)$ belongs, in two places (findings 05). Neither changes steps 7–9 directly. They're a reminder to check every transcribed equation against a conservation law.
 
 ## Suggested approach
 
@@ -61,15 +61,11 @@ Runs are cheap: one migrating system takes 0.5–10 s. The full step 5 sample of
 - **Settings and outputs.** Settings go in `config.toml` with a source or ASSUMED for each value; outputs go in `results/stepN/`; never commit `sources/`.
 - **Report honestly.** Never tune physics to match a figure. Hold out validation cases before looking at them. When a reproduction fails, say so and keep both readings.
 
-## State at pause (2026-11-17)
+## State at handoff (2026-11-17)
 
-- **Committed.** Steps 1–5, with findings 01–04. Step 6, 10 and 11 code is committed with its validation outputs, but not its production results.
-- **Step 6 production (SQ1 cases b–d).** It was running when the session paused: `scripts/step6_run.py --case {b,c,d}`, then `step6_analyze.py` and `step10_sq5.py`. The chunked runs resume, so rerun the same commands to finish or recover. Estimated time is about 15 minutes on 12 cores. Then write findings 05 (SQ1 b–d plus SQ5), from `results/step6/summary.json`, the `confusion_*` files and `results/step10/`.
-- **Step 6 validation already done** (`results/step6/validation.json`):
-  - back-reaction conserves $\mathbf S+\mathbf L$ to 1e-15, and $H_Q+H_{SL}$ to 2e-16;
-  - octupole agrees with REBOUND to 2–7% in $1-e_{\max}$ over six LK cycles;
-  - spin-down matches the Skumanich solution to 1e-10.
-  - In the pilot, about 35% of step 5's hot Jupiters don't form in all 11 runs once back-reaction is on: $S/L\sim1$ at $e_{\max}$ for fast spinners.
-- **A16's printed octupole $d\mathbf L/dt$ (Eq. Lvec) has a typo.** $(\mathbf e\cdot\hat L_b)$ appears in two places where $(\mathbf e\cdot\hat e_b)$ belongs. The corrected form is the one implemented; the evidence is the conservation checks and REBOUND. Record it in findings 05.
-- **Step 11 (N-body spot check).** A subagent was running it at pause. Its scripts are `scripts/step11_*.py` and its outputs go to `results/step11/`. Check them, then write findings 06.
-- **Not committed, because they regenerate.** `results/**/series*.npz` and the `chunks/` directories. `uv run python scripts/step5_run.py` rebuilds step 5's series in about 3 minutes. `step5_classify.py` and `step5_baselines.py` need it.
+- **Steps 1–6 and 10 are complete and committed** (findings 01–05). Step 11 (N-body) will be findings 06; check `git log` and `docs/findings/` for whether it landed.
+- **SQ1 is a negative result under fuller physics.** With back-reaction on, S16's map is no better than $\theta_{lb}^0$ alone in all three cases (findings 05). Advection (IV) all but disappears, from 162 systems to 0–2, and a third of the systems stop migrating in every ensemble member. This changes the stakes for SQ3: capture into resonance matters in S16's idealised model and at slow spins, but with back-reaction on, the advected population is tiny. State that up front in SQ3.
+- **SQ5:** with back-reaction on, the outcome class changes for more than 10% of systems above $S/L\approx0.11$ and more than 50% above 0.59, with $S/L$ at the first $e_{\max}$.
+- **A16's printed octupole $d\mathbf L/dt$ (Eq. Lvec, l.1763) has $(\mathbf e\cdot\hat L_b)$ in place of $(\mathbf e\cdot\hat e_b)$ twice.** The corrected form is implemented and checked against conservation laws and REBOUND (findings 05).
+- **The classifier was never re-validated with back-reaction.** v2 was hand-validated only without it. Check it before relying on IV versus II there.
+- **Large intermediates are not in git, because they regenerate.** These are `results/**/series*.npz` and the `chunks/` directories. `scripts/step5_run.py` takes about 3 minutes on an idle machine; `scripts/step6_run.py --case {b,c,d}` takes about 45 minutes under load. Classification (`step5_classify.py`, `step6_analyze.py`) needs the series.
