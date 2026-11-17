@@ -9,5 +9,32 @@ path = "docs/brief/planet-formation-and-spin-orbit-dynamics--how-does-stellar-sp
 sig_figs = 2
 results = "results/calibration.json"
 
+[step4]
+# Work plan step 4: reproduce S16 Fig. 8 (theta_sl,f vs P_star) with SRFs and weak-friction tides; no feedback, e_b = 0.
+# "S16" = arXiv:1607.03937v1, "A16" = arXiv:1510.08918v2; l. = line in the .tex source.
+# Values marked ASSUMED are not stated in S16; they are A16's canonical values (same authors and code family).
+m_star_msun = 1.0          # S16 l.189
+m_b_msun = 1.0             # S16 l.189
+m_p_mjup = 5.0             # S16 Fig. 8 caption l.884
+a0_au = 1.5                # S16 Fig. 8 caption
+a_b_au = 300.0             # S16 Fig. 8 caption; e_b = 0 (S16 l.201)
+theta_lb0_deg = [89.0, 87.0]   # S16 Fig. 8 top / bottom panel
+e0 = 0.01                  # ASSUMED: S15 and A16 Fig. ecc_example use 0.01
+r_star_rsun = 1.0          # ASSUMED: A16 l.1081 (G star)
+r_p_rjup = 1.0             # ASSUMED: A16 l.1081
+k_star = 0.1               # S16 l.280
+k_q_star = 0.05            # S16 l.280
+k_2p = 0.37                # ASSUMED: A16 Table 1 canonical
+k_qp = 0.17                # ASSUMED: A16 appendix (planet rotational distortion)
+k_p = 0.25                 # ASSUMED: A16 appendix (planet moment of inertia)
+chi = 10.0                 # ASSUMED: A16 l.649 canonical tidal enhancement, Delta t_L = 0.1 chi s
+p_planet0_hours = 10.0     # ASSUMED: A16 l.714 example initial planet spin period
+stop_a_au = 0.1            # A16 l.1093 stopping condition 3 (hot Jupiter formed)
+stop_t_gyr = 5.0           # A16 stopping condition 4
+p_star_min_days = 0.1      # S16 Fig. 8 x-axis range
+p_star_max_days = 30.0
+n_p_star = 1000            # brief asks ~300; runs are cheap (~0.5-4 s each), so 1000 resolves the bimodal branch-flipping
+results = "results/step4"
+
 [secrets]
 # None used.

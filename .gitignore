@@ -3,3 +3,4 @@ __pycache__/
 sources/
 secrets.env
 .DS_Store
+results/step4/chunks/

@@ -20,7 +20,7 @@ The brief's work plan, step by step:
 | 1 | Recover the definitions marked garbled | done; also found 8 errors in the brief | [01](docs/findings/01-definitions-and-calibration.md) |
 | 2 | Recompute the published prefactors | done; all 5 asked for reproduce | [01](docs/findings/01-definitions-and-calibration.md) |
 | 3 | Reproduce Storch & Lai 2015's bifurcation diagram and sections | done; analytic chaos-boundary curve does not reproduce | [02](docs/findings/02-dynamics-calibration.md) |
-| 4 | Reproduce Storch et al. 2016's $\theta_{sl,f}$ vs $P_\star$ with short-range forces and tides | in progress | — |
+| 4 | Reproduce Storch et al. 2016's $\theta_{sl,f}$ vs $P_\star$ with short-range forces and tides | done; all five outcome classes at the published periods; minutes, not CPU-hours | [03](docs/findings/03-tidal-migration-reproduction.md) |
 | 5–11 | Regime map, sub-questions SQ1–SQ5, N-body spot check | not started | — |
 
 ## Quick start
@@ -40,8 +40,8 @@ Tools and versions: [`docs/TOOLING.md`](docs/TOOLING.md).
 | `docs/brief/` | the research brief, unchanged |
 | `docs/findings/NN-*.md` | one write-up per step: method, validation numbers, comparison with the papers, corrections, what was not done |
 | `docs/SHA256SUMS` | hashes of every tracked file plus the pinned sources |
-| `lkspin/` | the physics: `lk_orbit.py` (analytic LK orbit), `spin.py` (spin integrator), `shape.py` (Fourier and resonance analysis) |
-| `scripts/` | one script per result; `calibrate.py`, `step3_*.py`, `fetch_sources.sh`, `sign.sh` |
+| `lkspin/` | the physics: `lk_orbit.py` (analytic LK orbit), `spin.py` (spin integrator), `shape.py` (Fourier and resonance analysis), `secular.py` (full secular orbit + tides + stellar spins, step 4 onward) |
+| `scripts/` | one script per result; `calibrate.py`, `step3_*.py`, `step4_*.py`, `fetch_sources.sh`, `sign.sh` |
 | `results/` | data (`.npz`, `.json`) and plots |
 | `tests/` | `uv run pytest` |
 | `config.toml` | settings (no secrets are used) |
@@ -55,7 +55,11 @@ Tools and versions: [`docs/TOOLING.md`](docs/TOOLING.md).
 - **Four adiabaticity parameters** exist and run in different directions: $\epsilon$ (S15), $\bar{\mathcal A}$
   (S16), $\mathcal A$ (A16), $\mathscr A$ (A17). Keep them as separate symbols in code.
 - **Stellar constants differ by paper:** S15, S16 and A16 use $k_q=0.05$, $k_\star=0.1$; A17 uses 0.01 and 0.06.
-- **Units:** `lkspin` uses time in $t_k$, and the non-dissipative spin problem depends only on $\epsilon$.
+- **Units:** `lk_orbit`, `spin` and `shape` use time in $t_k$, and the non-dissipative spin problem depends only on
+  $\epsilon$. `secular` uses AU, $M_\odot$ and years, and reads its physical parameters from `config.toml`
+  `[step4]`, where every assumed value is marked.
+- **Tidal bulge:** A16's tidal-bulge precession is inconsistent by a factor of 2; we use $\tfrac{15}{2}k_{2p}$
+  (findings 03).
 - **Sign each result:**
   1. Open every new findings file with the brief's SHA-256
      (`11966760d9b6fc5e008207e46cd21e6b5dfb3c2160a9453c8ac546143dd1c3c3`).
