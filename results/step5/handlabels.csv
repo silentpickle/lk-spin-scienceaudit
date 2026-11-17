@@ -1,0 +1,51 @@
+row,index,hand_label,split,note
+1,1303,III,train,ensemble scattered 10-130
+2,950,IV,train,smooth advection to 42
+3,2565,IV,train,W locked at 2; advection to 45
+4,1634,III,train,ensemble 5-40 near A~1; S16 Fig. 14 has chaos points here
+5,2417,I,train,large swing then one branch (~128) for all members
+6,1769,I,train,two branches (130 x9 / 45 x1)
+7,1451,I,train,one branch ~115
+8,2541,I,train,two branches
+9,1471,III,train,ensemble scattered across full range
+10,2111,I,train,one branch ~115
+11,373,IV,train,W ~1; smooth rise to 55
+12,147,III,train,ensemble scattered 15-120
+13,2543,IV,train,W ~1; smooth rise to 40
+14,11,III,train,chaotic series; scattered
+15,106,II,train,small stationary ~5-10 deg
+16,1946,III,train,scattered
+17,1679,IV,train,W locked 2; advection to 60
+18,2337,III,train,chaotic
+19,1377,I,train,monotonic rise to 117; one branch
+20,2937,III,train,scattered 0-155
+21,2938,I,train,two branches
+22,775,IV,train,W ~3 plateau; advection to 30-40
+23,963,IV,train,W ~2; advection to 50
+24,1817,I,train,one branch
+25,2422,IV,train,W ~1; advection to 55
+26,2624,I,train,two branches
+27,447,I,train,large swings; one branch ~47
+28,2415,I,train,one branch
+29,2243,III,train,chaotic
+30,2910,IV,train,smooth ~35 deg; W ramps 2-3
+31,1364,IV,test,advection to ~40 (8/10); 2 members at 120-135 (not captured)
+32,1610,IV,test,W ~1; advection to 45
+33,2436,III,test,scattered
+34,2572,I,test,one branch
+35,2681,I,test,monotonic to 125; one branch
+36,2371,IV,test,W ~1; advection to 35
+37,821,III,test,ensemble 45-135 with a chaotic member
+38,1422,III,test,scattered 15-160
+39,1331,I,test,one branch
+40,788,V,test,theta < 5 deg; W 8-17 unlocked
+41,128,IV,test,W ~2; advection to 50
+42,328,II,test,small stationary ~10
+43,1279,IV,test,W ~2; advection to 55
+44,2058,II,test,tiny ~3 deg; W 0.3-0.7
+45,610,I,test,two branches (35 x8 / 135 x2)
+46,1830,ambiguous,test,N_max0 = 0.496 boundary; smooth; ensemble 20-60 (II/IV.1 split across members)
+47,834,III,test,scattered 65-130
+48,324,ambiguous,test,II or IV.1 at onset (theta ~5; W touches 1 briefly)
+49,702,III,test,ensemble 35-135; middle member chaotic
+50,616,I,test,one branch ~137

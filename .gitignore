@@ -4,3 +4,5 @@ sources/
 secrets.env
 .DS_Store
 results/step4/chunks/
+results/**/chunks/
+results/**/series*.npz

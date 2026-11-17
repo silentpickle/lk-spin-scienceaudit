@@ -1,0 +1,33 @@
+{
+  "train": {
+    "n": 30,
+    "agree": 30,
+    "ambiguous": 0,
+    "misses": []
+  },
+  "test": {
+    "n": 18,
+    "agree": 17,
+    "ambiguous": 2,
+    "misses": [
+      [
+        "40",
+        "788",
+        "V",
+        "II"
+      ],
+      [
+        "46",
+        "1830",
+        "ambiguous",
+        "III"
+      ],
+      [
+        "48",
+        "324",
+        "ambiguous",
+        "II"
+      ]
+    ]
+  }
+}

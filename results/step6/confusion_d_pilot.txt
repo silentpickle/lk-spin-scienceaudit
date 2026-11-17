@@ -1,0 +1,14 @@
+predicted \ observed (v2)      I     II    III     IV      V  total
+                         I      6      0      2      0      0      8
+                        II      0      0      0      0      0      0
+                        IV      2      0      2      0      0      4
+family agreement: 6 / 12 = 0.500
+
+class transition (a) -> case, paired systems:
+(a) \ case       I     II    III     IV      V  total
+          I      4      0      1      0      0      5
+         II      0      0      1      0      0      1
+        III      3      0      2      0      0      5
+         IV      1      0      0      0      0      1
+          V      0      0      0      0      0      0
+changed: 6 / 12

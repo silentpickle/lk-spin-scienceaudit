@@ -1,0 +1,32 @@
+0 skip 0
+100 done 79 hot_jupiter 1.2s
+200 done 188 hot_jupiter 1.8s
+300 done 308 timeout 0.1s
+400 done 388 hot_jupiter 1.3s
+500 done 508 timeout 0.2s
+600 done 600 timeout 0.6s
+700 done 688 hot_jupiter 1.7s
+800 done 799 hot_jupiter 0.8s
+900 done 899 timeout 0.7s
+1000 done 1007 timeout 0.2s
+1100 done 1103 hot_jupiter 0.4s
+1200 done 1205 timeout 0.2s
+1300 done 1301 hot_jupiter 0.7s
+1400 done 1408 timeout 0.0s
+1500 done 1501 hot_jupiter 0.6s
+1600 done 1597 hot_jupiter 0.6s
+1700 done 1708 timeout 0.1s
+1800 done 1809 timeout 0.1s
+1900 done 1861 hot_jupiter 2.5s
+2000 done 2009 timeout 0.1s
+2100 done 2105 timeout 0.4s
+2200 done 2205 timeout 0.4s
+2300 done 2302 timeout 0.2s
+2400 done 2280 hot_jupiter 7.6s
+2500 done 2504 timeout 0.2s
+2600 done 2594 hot_jupiter 1.1s
+2700 done 2685 hot_jupiter 1.9s
+2800 done 2803 timeout 0.3s
+2900 done 2906 timeout 0.2s
+systems drawn 3000: hot Jupiter 1028, running 0, timeout 1972, disrupted 0, failed 0, step_limit 0
+wall per system: mean 0.57 s, max 10.0 s; sum 1711 s CPU; this run 170 s wall

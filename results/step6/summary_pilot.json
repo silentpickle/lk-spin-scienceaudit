@@ -1,0 +1,392 @@
+{
+  "seed_bootstrap": 6,
+  "n_boot": 2000,
+  "pilot": true,
+  "a": {
+    "n_total": 1028,
+    "outcomes": {
+      "hot_jupiter": 1028
+    },
+    "n_classified": 1028,
+    "observed_family_counts": {
+      "I": 404,
+      "II": 139,
+      "III": 318,
+      "IV": 162,
+      "V": 5
+    },
+    "confusion": [
+      [
+        401,
+        5,
+        88,
+        0,
+        0
+      ],
+      [
+        3,
+        91,
+        16,
+        0,
+        0
+      ],
+      [
+        0,
+        43,
+        214,
+        162,
+        5
+      ]
+    ],
+    "accuracy_map": [
+      0.6361867704280155,
+      0.6060311284046692,
+      0.6663424124513618
+    ],
+    "baselines": {
+      "n_train": 536,
+      "n_test": 492,
+      "s16_map_test_half": [
+        0.6280487804878049,
+        0.5853658536585366,
+        0.6707317073170732
+      ],
+      "theta_only_test_half": [
+        0.4735772357723577,
+        0.42886178861788615,
+        0.5183434959349591
+      ],
+      "map_plus_omega_test_half": [
+        0.7642276422764228,
+        0.7235772357723578,
+        0.8008130081300813
+      ],
+      "omega_cut": 0.13,
+      "theta_only_bins": 10
+    }
+  },
+  "b": {
+    "n_total": 20,
+    "outcomes": {
+      "hot_jupiter": 13,
+      "timeout": 3,
+      "mixed": 4
+    },
+    "n_classified": 13,
+    "observed_family_counts": {
+      "I": 5,
+      "II": 0,
+      "III": 8,
+      "IV": 0,
+      "V": 0
+    },
+    "confusion": [
+      [
+        5,
+        0,
+        4,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        3,
+        0,
+        0
+      ]
+    ],
+    "accuracy_map": [
+      0.38461538461538464,
+      0.15384615384615385,
+      0.6923076923076923
+    ],
+    "baselines": {
+      "n_train": 8,
+      "n_test": 5,
+      "s16_map_test_half": [
+        0.2,
+        0.0,
+        0.6
+      ],
+      "theta_only_test_half": [
+        0.6,
+        0.2,
+        1.0
+      ],
+      "map_plus_omega_test_half": [
+        0.4,
+        0.0,
+        0.8
+      ],
+      "omega_cut": 0.02,
+      "theta_only_bins": 2
+    },
+    "transition_a_to_case": [
+      [
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "n_paired": 13,
+    "class_change_fraction": [
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "c": {
+    "n_total": 20,
+    "outcomes": {
+      "hot_jupiter": 13,
+      "timeout": 4,
+      "mixed": 3
+    },
+    "n_classified": 13,
+    "observed_family_counts": {
+      "I": 3,
+      "II": 0,
+      "III": 10,
+      "IV": 0,
+      "V": 0
+    },
+    "confusion": [
+      [
+        3,
+        0,
+        6,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        3,
+        0,
+        0
+      ]
+    ],
+    "accuracy_map": [
+      0.23076923076923078,
+      0.0,
+      0.46153846153846156
+    ],
+    "baselines": {
+      "n_train": 8,
+      "n_test": 5,
+      "s16_map_test_half": [
+        0.2,
+        0.0,
+        0.6
+      ],
+      "theta_only_test_half": [
+        0.6,
+        0.2,
+        1.0
+      ],
+      "map_plus_omega_test_half": [
+        0.4,
+        0.0,
+        0.8
+      ],
+      "omega_cut": 0.02,
+      "theta_only_bins": 2
+    },
+    "transition_a_to_case": [
+      [
+        3,
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "n_paired": 13,
+    "class_change_fraction": [
+      0.15384615384615385,
+      0.0,
+      0.38461538461538464
+    ]
+  },
+  "d": {
+    "n_total": 20,
+    "outcomes": {
+      "hot_jupiter": 12,
+      "timeout": 4,
+      "mixed": 4
+    },
+    "n_classified": 12,
+    "observed_family_counts": {
+      "I": 8,
+      "II": 0,
+      "III": 4,
+      "IV": 0,
+      "V": 0
+    },
+    "confusion": [
+      [
+        6,
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        2,
+        0,
+        0
+      ]
+    ],
+    "accuracy_map": [
+      0.5,
+      0.25,
+      0.75
+    ],
+    "baselines": {
+      "n_train": 7,
+      "n_test": 5,
+      "s16_map_test_half": [
+        0.6,
+        0.2,
+        1.0
+      ],
+      "theta_only_test_half": [
+        0.4,
+        0.0,
+        0.8
+      ],
+      "map_plus_omega_test_half": [
+        0.8,
+        0.4,
+        1.0
+      ],
+      "omega_cut": 0.02,
+      "theta_only_bins": 2
+    },
+    "transition_a_to_case": [
+      [
+        4,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        3,
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "n_paired": 12,
+    "class_change_fraction": [
+      0.5,
+      0.25,
+      0.75
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+uv run python scripts/step5_run.py > results/step5/run_log.txt 2>&1  1132.21s user 7.93s system 652% cpu 2:54.79 total

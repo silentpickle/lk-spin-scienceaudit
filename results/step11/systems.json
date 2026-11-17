@@ -1,0 +1,182 @@
+[
+ {
+  "name": "F89",
+  "kind": "fiducial",
+  "m_p_mjup": 5.0,
+  "a_b_au": 300.0,
+  "theta_lb0_deg": 89.0,
+  "mean_anom_planet": 0.8078304089805352,
+  "mean_anom_comp": 3.137055329483761
+ },
+ {
+  "name": "F87",
+  "kind": "fiducial",
+  "m_p_mjup": 5.0,
+  "a_b_au": 300.0,
+  "theta_lb0_deg": 87.0,
+  "mean_anom_planet": 3.779325642911732,
+  "mean_anom_comp": 0.18025835588015413
+ },
+ {
+  "name": "R00",
+  "kind": "random",
+  "m_p_mjup": 1.5917043383098237,
+  "a_b_au": 364.7225806610079,
+  "theta_lb0_deg": 87.10674859103439,
+  "mean_anom_planet": 6.2607912527374845,
+  "mean_anom_comp": 4.644825097306932
+ },
+ {
+  "name": "R01",
+  "kind": "random",
+  "m_p_mjup": 4.712844091841478,
+  "a_b_au": 494.27409178919163,
+  "theta_lb0_deg": 85.72368736981426,
+  "mean_anom_planet": 2.8884806903405233,
+  "mean_anom_comp": 1.2293229864205468
+ },
+ {
+  "name": "R02",
+  "kind": "random",
+  "m_p_mjup": 1.2816823046167873,
+  "a_b_au": 261.3528383990135,
+  "theta_lb0_deg": 88.29947555065196,
+  "mean_anom_planet": 4.341931848888639,
+  "mean_anom_comp": 0.3890563117018622
+ },
+ {
+  "name": "R03",
+  "kind": "random",
+  "m_p_mjup": 1.519095797597192,
+  "a_b_au": 366.11910885956837,
+  "theta_lb0_deg": 85.99085853616138,
+  "mean_anom_planet": 0.34348956017202,
+  "mean_anom_comp": 3.7598084966706264
+ },
+ {
+  "name": "R04",
+  "kind": "random",
+  "m_p_mjup": 4.7933138131671,
+  "a_b_au": 345.08740907701633,
+  "theta_lb0_deg": 89.41701228557207,
+  "mean_anom_planet": 0.21394421238539307,
+  "mean_anom_comp": 5.62821194453304
+ },
+ {
+  "name": "R05",
+  "kind": "random",
+  "m_p_mjup": 3.4875343711855313,
+  "a_b_au": 305.9824565181344,
+  "theta_lb0_deg": 86.06402646135079,
+  "mean_anom_planet": 5.314884288304161,
+  "mean_anom_comp": 0.16929044653765982
+ },
+ {
+  "name": "R06",
+  "kind": "random",
+  "m_p_mjup": 2.475972494919164,
+  "a_b_au": 377.478591184713,
+  "theta_lb0_deg": 85.1620659681494,
+  "mean_anom_planet": 3.693771171954239,
+  "mean_anom_comp": 5.058818621968828
+ },
+ {
+  "name": "R07",
+  "kind": "random",
+  "m_p_mjup": 3.0455600872130506,
+  "a_b_au": 270.59036950027416,
+  "theta_lb0_deg": 85.98376787538997,
+  "mean_anom_planet": 1.9396805226860871,
+  "mean_anom_comp": 1.1948734549736069
+ },
+ {
+  "name": "R08",
+  "kind": "random",
+  "m_p_mjup": 3.651371810067197,
+  "a_b_au": 440.66080513354507,
+  "theta_lb0_deg": 86.69416458140263,
+  "mean_anom_planet": 1.9941362304913497,
+  "mean_anom_comp": 0.5837168474428487
+ },
+ {
+  "name": "R09",
+  "kind": "random",
+  "m_p_mjup": 2.1012352630445172,
+  "a_b_au": 460.2000655527244,
+  "theta_lb0_deg": 87.29765000077018,
+  "mean_anom_planet": 0.5606942058106457,
+  "mean_anom_comp": 0.11285879849917678
+ },
+ {
+  "name": "R10",
+  "kind": "random",
+  "m_p_mjup": 1.5518722914678214,
+  "a_b_au": 238.6279013683553,
+  "theta_lb0_deg": 89.44005826058826,
+  "mean_anom_planet": 1.084915100681961,
+  "mean_anom_comp": 1.8408166364202934
+ },
+ {
+  "name": "R11",
+  "kind": "random",
+  "m_p_mjup": 4.152158378015967,
+  "a_b_au": 340.12196202148135,
+  "theta_lb0_deg": 88.41706933480786,
+  "mean_anom_planet": 0.1544790691859969,
+  "mean_anom_comp": 4.568577826464913
+ },
+ {
+  "name": "R12",
+  "kind": "random",
+  "m_p_mjup": 3.681442336409935,
+  "a_b_au": 283.1434677601113,
+  "theta_lb0_deg": 86.66267123763798,
+  "mean_anom_planet": 5.27237691818516,
+  "mean_anom_comp": 3.098734738784441
+ },
+ {
+  "name": "R13",
+  "kind": "random",
+  "m_p_mjup": 3.0495292539326417,
+  "a_b_au": 224.9350993205727,
+  "theta_lb0_deg": 85.08269835397773,
+  "mean_anom_planet": 2.9298693973577925,
+  "mean_anom_comp": 5.359054377356383
+ },
+ {
+  "name": "R14",
+  "kind": "random",
+  "m_p_mjup": 4.266945743878632,
+  "a_b_au": 468.7832924751103,
+  "theta_lb0_deg": 85.78313610111441,
+  "mean_anom_planet": 0.7992394932093565,
+  "mean_anom_comp": 1.3647788708395534
+ },
+ {
+  "name": "X0",
+  "kind": "extreme",
+  "m_p_mjup": 4.271844564304349,
+  "a_b_au": 201.8293100756768,
+  "theta_lb0_deg": 89.86558607338387,
+  "mean_anom_planet": 2.2093321242234767,
+  "mean_anom_comp": 2.416490733325854
+ },
+ {
+  "name": "X1",
+  "kind": "extreme",
+  "m_p_mjup": 4.6296784524711905,
+  "a_b_au": 207.18757533497725,
+  "theta_lb0_deg": 88.93478892232841,
+  "mean_anom_planet": 0.028128617368820844,
+  "mean_anom_comp": 5.154689870072092
+ },
+ {
+  "name": "X2",
+  "kind": "extreme",
+  "m_p_mjup": 3.6796772822264234,
+  "a_b_au": 200.08981815863945,
+  "theta_lb0_deg": 89.88155041379518,
+  "mean_anom_planet": 1.711269205561319,
+  "mean_anom_comp": 1.9017066084381227
+ }
+]

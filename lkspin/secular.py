@@ -221,6 +221,8 @@ def rhs(t, y, par, omega_star, out):
     if par[P_TIDE] > 0.0:
         tide_terms(y, par, lmag, j, a, n, omega_p, out)
     spin_terms(y, par, omega_star, lmag, j, a, out)
+    if y.shape[0] > N_ORBIT + N_SPIN * omega_star.shape[0]:  # opt-in winding variables (psi_terms, step 5)
+        psi_terms(y, par, omega_star, lmag, j, a, out)
 
 
 @njit(cache=True)
@@ -383,3 +385,373 @@ def srf_epsilons(par: np.ndarray, a: float, omega_p_rad_per_yr: float) -> tuple[
     om_hat = omega_p_rad_per_yr / par[P_OMBRK]
     eps_rot = 1.5 * par[P_KQP] * om_hat**2 * mt / mb * (par[P_RP] / a) ** 2 * (ab / a) ** 3
     return eps_gr, eps_tide, eps_rot
+
+
+# ================================================================== opt-in diagnostics (step 5)
+# The state gets K extra entries Psi_k (winding phase, dPsi_k/dt = alpha_k cos theta_sl,k) after the spin vectors, and
+# the integrator records the state at every eccentricity extremum (minimum and maximum). rhs() only adds the Psi derivatives when the state is
+# longer than the orbit + spins, so nothing changes for callers that do not ask. The Psi entries are left out of the
+# step-size error norm, so the orbit and spin trajectories are bit-identical to advance() with the same K.
+EV_FIXED = 4  # event columns before the per-spin ones: t, a, e, kind (+1 minimum of e, -1 maximum); then p_k = cos(theta_sl,k) and Psi_k, K each
+KIND_MIN = 1.0
+KIND_MAX = -1.0
+EV_MAX_DEFAULT = 100_000
+BISECT_ITER = 60
+HERMITE_SIX = 6.0  # coefficients of the cubic-Hermite derivative, see hermite_deriv_root
+
+
+@njit(cache=True)
+def psi_terms(y, par, omega_star, lmag, j, a, out):
+    """dPsi_k/dt = alpha_k cos(theta_sl,k), alpha = (3/2)(kq/k*)(Mp/M*)(R*/a)^3 Omega*_k / j^3 (A16/S16 alpha)."""
+    n_spin = omega_star.shape[0]
+    base = par[P_STAR_COEF] / (a**3 * j**3)
+    for k in range(n_spin):
+        o = N_ORBIT + N_SPIN * k
+        cs = (y[0] * y[o] + y[1] * y[o + 1] + y[2] * y[o + 2]) / lmag
+        out[N_ORBIT + N_SPIN * n_spin + k] = base * omega_star[k] * cs
+
+
+@njit(cache=True)
+def de2_dt(y, f):
+    """d(e^2)/dt from the state and its derivative."""
+    return 2.0 * (y[3] * f[3] + y[4] * f[4] + y[5] * f[5])
+
+
+@njit(cache=True)
+def hermite_deriv_root(g0, g1, m0, m1):
+    """Root s in [0, 1] of the derivative of the cubic Hermite interpolant (values g, slopes m = h dg/dt at the ends).
+
+    Needs m0 and m1 of opposite sign (an extremum inside the step); plain bisection on a quadratic.
+    """
+    c2 = HERMITE_SIX * (g0 - g1) + 3.0 * (m0 + m1)
+    c1 = -HERMITE_SIX * (g0 - g1) - 4.0 * m0 - 2.0 * m1
+    lo, hi = 0.0, 1.0
+    for _ in range(BISECT_ITER):
+        mid = 0.5 * (lo + hi)
+        if ((c2 * mid + c1) * mid + m0 < 0.0) == (m0 < 0.0):
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi)
+
+
+@njit(cache=True)
+def hermite_state(y0, f0, y1, f1, h, s, out):
+    """Cubic Hermite interpolation of the whole state at fraction s of a step."""
+    s2, s3 = s * s, s * s * s
+    h00, h10, h01, h11 = 2 * s3 - 3 * s2 + 1.0, s3 - 2 * s2 + s, -2 * s3 + 3 * s2, s3 - s2
+    for i in range(y0.shape[0]):
+        out[i] = h00 * y0[i] + h10 * h * f0[i] + h01 * y1[i] + h11 * h * f1[i]
+
+
+@njit(cache=True)
+def record_event(ev, idx, t, kind, ymid, par, n_spin):
+    """One row: t, a, e, kind, then cos(theta_sl) and Psi for each spin."""
+    lmag, j, a = orbit_elements(ymid, par)
+    ev[idx, 0] = t
+    ev[idx, 1] = a
+    ev[idx, 2] = math.sqrt(max(0.0, 1.0 - j * j))
+    ev[idx, 3] = kind
+    for k in range(n_spin):
+        o = N_ORBIT + N_SPIN * k
+        snorm = math.sqrt(ymid[o] ** 2 + ymid[o + 1] ** 2 + ymid[o + 2] ** 2)
+        ev[idx, EV_FIXED + k] = (ymid[0] * ymid[o] + ymid[1] * ymid[o + 1] + ymid[2] * ymid[o + 2]) / (lmag * snorm)
+        ev[idx, EV_FIXED + n_spin + k] = ymid[N_ORBIT + N_SPIN * n_spin + k]
+
+
+@njit(cache=True)
+def err_norm_n(err, y, ynew, rtol, atol, n):
+    """err_norm over the first n components only (same arithmetic as err_norm when n = len(y))."""
+    s = 0.0
+    for i in range(n):
+        sc = atol + rtol * max(abs(y[i]), abs(ynew[i]))
+        s += (err[i] / sc) ** 2
+    return math.sqrt(s / n)
+
+
+@njit(cache=True)
+def log_extremum(ev, nev, t, h, y, ynew, kk, par, n_spin, mid):
+    """If e^2 has a minimum or maximum inside the accepted step y -> ynew, store it (interpolated), return nev + 1."""
+    d_old = de2_dt(y, kk[0])
+    d_new = de2_dt(ynew, kk[6])
+    is_min = d_old < 0.0 <= d_new
+    is_max = d_old > 0.0 >= d_new
+    if not (is_min or is_max) or nev >= ev.shape[0]:
+        return nev
+    g0 = y[3] ** 2 + y[4] ** 2 + y[5] ** 2
+    g1 = ynew[3] ** 2 + ynew[4] ** 2 + ynew[5] ** 2
+    s = hermite_deriv_root(g0, g1, h * d_old, h * d_new)
+    hermite_state(y, kk[0], ynew, kk[6], h, s, mid)
+    record_event(ev, nev, t + s * h, KIND_MIN if is_min else KIND_MAX, mid, par, n_spin)
+    return nev + 1
+
+
+@njit(cache=True)
+def advance_diag(y, t0, t_stop, h, par, omega_star, rtol, atol, max_steps, ev):
+    """advance() with winding variables and eccentricity-extremum events.
+
+    y has length N_ORBIT + 4 K (Psi_k last, start at 0). ev: (nev_max, EV_FIXED + 2 K) buffer, one row per minimum or maximum of e
+    (cubic-Hermite refined inside the step). Returns (t, h, status, steps, nev).
+    """
+    n_spin = omega_star.shape[0]
+    n_core = N_ORBIT + N_SPIN * n_spin
+    t = t0
+    n = y.shape[0]
+    kk = np.empty((NSTAGE, n))
+    tmp = np.empty(n)
+    ynew = np.empty(n)
+    err = np.empty(n)
+    mid = np.empty(n)
+    rhs(t, y, par, omega_star, kk[0])
+    nev = 0
+    steps = 0
+    status = event_status(y, par)
+    while status == ST_RUNNING:
+        if t >= t_stop:
+            return t, h, ST_TIMEOUT, steps, nev
+        if steps >= max_steps:
+            return t, h, ST_STEPS, steps, nev
+        clipped = h >= t_stop - t
+        h = t_stop - t if clipped else h
+        rk_step(t, y, h, kk, par, omega_star, tmp, ynew, err)
+        en = err_norm_n(err, y, ynew, rtol, atol, n_core)
+        if en <= 1.0:
+            nev = log_extremum(ev, nev, t, h, y, ynew, kk, par, n_spin, mid)
+            t = t_stop if clipped else t + h
+            y[:] = ynew
+            kk[0][:] = kk[6]
+            steps += 1
+            status = event_status(y, par)
+        fac = SAFETY * en ** (-ERR_EXPONENT) if en > 0.0 else FAC_MAX
+        h *= min(FAC_MAX, max(FAC_MIN, fac))
+        if h < H_MIN:
+            return t, h, ST_FAILED, steps, nev
+    return t, h, status, steps, nev
+
+
+def run_diag(y0, par, p_star_days, t_stop_yr, rtol=RTOL_DEFAULT, atol=ATOL_DEFAULT, ev_max=EV_MAX_DEFAULT,
+             max_steps=MAX_STEPS_DEFAULT):
+    """Like run(), with Psi winding variables and extremum events. y0 is the usual initial state (no Psi entries).
+
+    Returns dict: t, y (orbit + spins, as run()), psi (K, final), status, steps, ev (nev, EV_FIXED + 2K).
+    """
+    om = np.array([omega_star_of_period(p) for p in np.atleast_1d(p_star_days)])
+    y = np.concatenate([y0, np.zeros(om.size)])
+    ev = np.zeros((ev_max, EV_FIXED + 2 * om.size))
+    t, h, status, steps, nev = advance_diag(y, 0.0, t_stop_yr, H_INITIAL, par, om, rtol, atol, max_steps, ev)
+    n_core = y0.size
+    return {"t": t, "y": y[:n_core], "psi": y[n_core:], "status": status, "steps": steps, "ev": ev[:nev], "h": h}
+
+
+# ================================================================== opt-in physics (step 6): feedback, octupole, spin-down
+# One stellar spin per integration, kept as a VECTOR S_star (units of L_SCALE, magnitude k* M* R*^2 Omega*), so the
+# star can torque the orbit (A16 appendix "Spin Evolution Due to the Stellar Quadrupole"), spin down (A16 "Stellar
+# Spin-down due to Magnetic Braking") and carry octupole LK terms (A16 Eqs. Lvec, evec). State layout:
+#   y = [l(3), e(3), s, S(3), Psi]   (N_ORBIT + 3 + 1 = 11 entries; Psi = winding phase as in run_diag)
+# Nothing above this line is changed: the callers of run, run_diag and advance keep bit-identical results.
+P_FB, P_EOCT, P_QX, P_QY, P_ISTAR, P_ALPHA_MB = range(NPAR, NPAR + 6)
+NPAR_EXT = NPAR + 6
+N_EXT = N_ORBIT + N_SPIN + 1  # state length of the extended system
+IDX_PSI_EXT = N_ORBIT + N_SPIN
+N_CORE_EXT = N_ORBIT + N_SPIN  # entries in the step-size error norm (Psi left out, as in advance_diag)
+N_SPIN_EXT = 1  # one spin per integration; record_event / log_extremum take this as n_spin
+COEF_OCT = 75.0 / 64.0  # A16 Eqs. Lvec, evec
+COEF_OCT_8_5 = 8.0 / 5.0
+COEF_OCT_1_5 = 1.0 / 5.0
+COEF_OCT_16_5 = 16.0 / 5.0
+COEF_OCT_7 = 7.0
+COEF_OCT_2 = 2.0
+HALF_OBLIQUITY = 5.0  # (1 - 5 cos^2 theta_sl) in the e-vector feedback term
+
+
+def extend_params(par: np.ndarray, *, fb_mult: float = 1.0, e_b: float = 0.0, phi_b: float = 0.0,
+                  alpha_mb: float = 0.0, octupole: bool = False) -> np.ndarray:
+    """Copy of par with the opt-in entries. par[P_AB] stays a_b,eff (it sets t_k); with `octupole` the real separation is
+    a_b = a_b,eff / sqrt(1 - e_b^2) and eps_oct = (M* - Mp)/(M* + Mp) (a / a_b) e_b / (1 - e_b^2), stored per AU of a."""
+    out = np.zeros(NPAR_EXT)
+    out[:NPAR] = par
+    out[P_FB] = fb_mult
+    out[P_ISTAR] = par[P_KS] * par[P_MSTAR] * par[P_RSTAR] ** 2
+    out[P_ALPHA_MB] = alpha_mb
+    if octupole:
+        a_b_real = par[P_AB] / math.sqrt(1.0 - e_b * e_b)
+        mass_ratio = (par[P_MSTAR] - par[P_MP]) / (par[P_MSTAR] + par[P_MP])
+        out[P_EOCT] = mass_ratio * e_b / (a_b_real * (1.0 - e_b * e_b))
+        out[P_QX], out[P_QY] = math.cos(phi_b), math.sin(phi_b)
+    return out
+
+
+def initial_state_ext(par: np.ndarray, cfg: dict, theta_lb0_deg: float, p_star_days: float) -> np.ndarray:
+    """Orbit as initial_state, S_star = I_star Omega_star along L_hat0 (aligned), Psi = 0."""
+    y = np.zeros(N_EXT)
+    y[:N_ORBIT + N_SPIN] = initial_state(par, cfg, theta_lb0_deg, 1)
+    y[N_ORBIT:N_ORBIT + N_SPIN] *= par[P_ISTAR] * omega_star_of_period(p_star_days) / par[P_LSCALE]
+    return y
+
+
+@njit(cache=True)
+def oct_terms(y, par, lmag, j, a, tk_inv, out):
+    """Octupole LK terms of A16 Eqs. Lvec and evec, L_b = z-hat, e_b-hat = (QX, QY, 0); adds to out[0:6].
+
+    The bracket coefficients are X = 2[(e.eb)(j.Lb) + (e.Lb)(j.eb)], Y = 2[(j.Lb)(j.eb) - 7 (e.Lb)(e.eb)],
+    Z = 2 (e.Lb)(j.Lb), W = 8/5 e^2 - 1/5 - 7 (e.Lb)^2 + (j.Lb)^2. A16's printed Eq. Lvec writes (e.Lb) for (e.eb) in X
+    and Y (findings: a typo, the e<->j mirror of Eq. evec); this is the mirrored form."""
+    eps = par[P_EOCT] * a
+    qx, qy = par[P_QX], par[P_QY]
+    j0, j1, j2 = j * y[0] / lmag, j * y[1] / lmag, j * y[2] / lmag
+    e0, e1, e2v = y[3], y[4], y[5]
+    esq = e0 * e0 + e1 * e1 + e2v * e2v
+    ez, jz = e2v, j2
+    eq, jq = e0 * qx + e1 * qy, j0 * qx + j1 * qy
+    xc = COEF_OCT_2 * (eq * jz + ez * jq)
+    yc = COEF_OCT_2 * (jz * jq - COEF_OCT_7 * ez * eq)
+    zc = COEF_OCT_2 * ez * jz
+    wc = COEF_OCT_8_5 * esq - COEF_OCT_1_5 - COEF_OCT_7 * ez * ez + jz * jz
+    # dL/dt: [(X j + Y e) x Lb + (Z j + W e) x eb]
+    p0, p1 = xc * j0 + yc * e0, xc * j1 + yc * e1
+    q0, q1, q2 = zc * j0 + wc * e0, zc * j1 + wc * e1, zc * j2 + wc * e2v
+    cl = -COEF_OCT * eps * lmag / j * tk_inv
+    out[0] += cl * (p1 - q2 * qy)
+    out[1] += cl * (-p0 + q2 * qx)
+    out[2] += cl * (q0 * qy - q1 * qx)
+    # de/dt: [(Z e + W j) x eb + (X e + Y j) x Lb + 16/5 (e.eb) j x e]
+    r0, r1, r2 = zc * e0 + wc * j0, zc * e1 + wc * j1, zc * e2v + wc * j2
+    s0, s1 = xc * e0 + yc * j0, xc * e1 + yc * j1
+    jx, jy, jzz = cross3(j0, j1, j2, e0, e1, e2v)
+    ce = -COEF_OCT * eps * tk_inv
+    out[3] += ce * (-r2 * qy + s1 + COEF_OCT_16_5 * eq * jx)
+    out[4] += ce * (r2 * qx - s0 + COEF_OCT_16_5 * eq * jy)
+    out[5] += ce * (r0 * qy - r1 * qx + COEF_OCT_16_5 * eq * jzz)
+
+
+@njit(cache=True)
+def spin_ext_terms(y, par, lmag, j, a, out):
+    """Vector stellar spin: precession about L_hat, feedback on L and e (A16), Skumanich spin-down, winding Psi.
+
+    Omega_ps = -alpha cos(theta_sl), alpha = (3/2)(kq/k*)(Mp/M*)(R*/a)^3 Omega* / j^3 with the CURRENT Omega* = |S| / I*.
+    dS/dt = Omega_ps L_hat x S - alpha_MB Omega*^2 S;  dL/dt|SL = fb * Omega_ps S x L_hat;
+    de/dt|SL = -fb * omega_dot* [cos(th) S_hat x e + (1 - 5 cos^2 th)/2 L_hat x e],  omega_dot* = (S/L) alpha."""
+    o = N_ORBIT
+    smag = math.sqrt(y[o] ** 2 + y[o + 1] ** 2 + y[o + 2] ** 2)
+    omega = smag * par[P_LSCALE] / par[P_ISTAR]
+    lh0, lh1, lh2 = y[0] / lmag, y[1] / lmag, y[2] / lmag
+    sh0, sh1, sh2 = y[o] / smag, y[o + 1] / smag, y[o + 2] / smag
+    cs = lh0 * sh0 + lh1 * sh1 + lh2 * sh2
+    alpha = par[P_STAR_COEF] * omega / (a**3 * j**3)
+    ops = -alpha * cs
+    c0, c1, c2 = cross3(lh0, lh1, lh2, y[o], y[o + 1], y[o + 2])
+    damp = par[P_ALPHA_MB] * omega * omega
+    out[o] = ops * c0 - damp * y[o]
+    out[o + 1] = ops * c1 - damp * y[o + 1]
+    out[o + 2] = ops * c2 - damp * y[o + 2]
+    fb = par[P_FB]
+    for i, ci in enumerate((c0, c1, c2)):
+        out[i] += -fb * ops * ci
+    wdot = smag / lmag * alpha
+    sxe = cross3(sh0, sh1, sh2, y[3], y[4], y[5])
+    lxe = cross3(lh0, lh1, lh2, y[3], y[4], y[5])
+    for i in range(3):
+        out[3 + i] += -fb * wdot * (cs * sxe[i] + 0.5 * (1.0 - HALF_OBLIQUITY * cs * cs) * lxe[i])
+    out[IDX_PSI_EXT] = alpha * cs
+
+
+@njit(cache=True)
+def rhs_ext(t, y, par, out):
+    """dy/dt of the extended system: LK (+ octupole), SRFs, planet tides as in rhs(), plus spin_ext_terms."""
+    out[:] = 0.0
+    lmag, j, a = orbit_elements(y, par)
+    e2 = 1.0 - j * j
+    n = math.sqrt(par[P_G] * par[P_MTOT] / a**3)
+    omega_p = y[IDX_S] * par[P_LSCALE] / par[P_IP]
+    if par[P_LK] > 0.0:
+        tk_inv = par[P_MB] / par[P_MTOT] * (a / par[P_AB]) ** 3 * n
+        lk_terms(y, par, lmag, j, tk_inv, out)
+        if par[P_EOCT] > 0.0:
+            oct_terms(y, par, lmag, j, a, tk_inv, out)
+    if par[P_SRF] > 0.0:
+        w = srf_rate(par, a, e2, j, n, omega_p)
+        cx, cy, cz = cross3(y[0] / lmag, y[1] / lmag, y[2] / lmag, y[3], y[4], y[5])
+        out[3] += w * cx
+        out[4] += w * cy
+        out[5] += w * cz
+    if par[P_TIDE] > 0.0:
+        tide_terms(y, par, lmag, j, a, n, omega_p, out)
+    spin_ext_terms(y, par, lmag, j, a, out)
+
+
+@njit(cache=True)
+def rk_step_ext(t, y, h, kk, par, tmp, ynew, err):
+    """rk_step() for rhs_ext."""
+    n = y.shape[0]
+    a2 = np.array([A21])
+    a3 = np.array([A31, A32])
+    a4 = np.array([A41, A42, A43])
+    a5 = np.array([A51, A52, A53, A54])
+    a6 = np.array([A61, A62, A63, A64, A65])
+    stages = ((a2, C2), (a3, C3), (a4, C4), (a5, C5), (a6, 1.0))
+    for st in range(5):
+        coef = stages[st][0]
+        for i in range(n):
+            tmp[i] = y[i] + h * _stage_sum(kk, coef, i)
+        rhs_ext(t + stages[st][1] * h, tmp, par, kk[st + 1])
+    for i in range(n):
+        ynew[i] = y[i] + h * (B1 * kk[0, i] + B3 * kk[2, i] + B4 * kk[3, i] + B5 * kk[4, i] + B6 * kk[5, i])
+    rhs_ext(t + h, ynew, par, kk[6])
+    for i in range(n):
+        err[i] = h * (E1 * kk[0, i] + E3 * kk[2, i] + E4 * kk[3, i] + E5 * kk[4, i] + E6 * kk[5, i] + E7 * kk[6, i])
+
+
+@njit(cache=True)
+def advance_ext(y, t0, t_stop, h, par, rtol, atol, max_steps, ev):
+    """advance_diag() for the extended system (one vector spin): same events, same extremum log (n_spin = 1).
+
+    ev: (nev_max, EV_FIXED + 2) buffer. Returns (t, h, status, steps, nev)."""
+    t = t0
+    n = y.shape[0]
+    kk = np.empty((NSTAGE, n))
+    tmp = np.empty(n)
+    ynew = np.empty(n)
+    err = np.empty(n)
+    mid = np.empty(n)
+    rhs_ext(t, y, par, kk[0])
+    nev = 0
+    steps = 0
+    status = event_status(y, par)
+    while status == ST_RUNNING:
+        if t >= t_stop:
+            return t, h, ST_TIMEOUT, steps, nev
+        if steps >= max_steps:
+            return t, h, ST_STEPS, steps, nev
+        clipped = h >= t_stop - t
+        h = t_stop - t if clipped else h
+        rk_step_ext(t, y, h, kk, par, tmp, ynew, err)
+        en = err_norm_n(err, y, ynew, rtol, atol, N_CORE_EXT)
+        if en <= 1.0:
+            nev = log_extremum(ev, nev, t, h, y, ynew, kk, par, N_SPIN_EXT, mid)
+            t = t_stop if clipped else t + h
+            y[:] = ynew
+            kk[0][:] = kk[6]
+            steps += 1
+            status = event_status(y, par)
+        fac = SAFETY * en ** (-ERR_EXPONENT) if en > 0.0 else FAC_MAX
+        h *= min(FAC_MAX, max(FAC_MIN, fac))
+        if h < H_MIN:
+            return t, h, ST_FAILED, steps, nev
+    return t, h, status, steps, nev
+
+
+def run_ext(y0, par, t_stop_yr, rtol=RTOL_DEFAULT, atol=ATOL_DEFAULT, ev_max=EV_MAX_DEFAULT,
+            max_steps=MAX_STEPS_DEFAULT, t_start_yr=0.0):
+    """Integrate the extended system from y0 (initial_state_ext). Returns dict: t, y, psi, status, steps, ev (rows as run_diag
+    for one spin: t, a, e, kind, cos(theta_sl), Psi)."""
+    y = y0.copy()
+    ev = np.zeros((ev_max, EV_FIXED + 2 * N_SPIN_EXT))
+    t, h, status, steps, nev = advance_ext(y, t_start_yr, t_stop_yr, H_INITIAL, par, rtol, atol, max_steps, ev)
+    return {"t": t, "y": y, "psi": y[IDX_PSI_EXT], "status": status, "steps": steps, "ev": ev[:nev], "h": h}
+
+
+def theta_sl_ext(y: np.ndarray) -> float:
+    """theta_sl (deg) of an extended state."""
+    lh = y[0:3] / np.linalg.norm(y[0:3])
+    s = y[N_ORBIT:N_ORBIT + N_SPIN]
+    return math.degrees(math.acos(np.clip(np.dot(s, lh) / np.linalg.norm(s), -1.0, 1.0)))

@@ -1,0 +1,17 @@
+Predicted (S16 map: I if A<1; II if A>=1, N<0.5; IV if A>=1, N>=0.5)  vs  first-pass class (rows: predicted)
+1028 hot-Jupiter systems; thresholds from config.toml [step5]
+
+predicted              I          II         III        IV.1        IV.2        IV.3       IV.4+           Vunclassified       total
+I                    101          17         112           0           0           0           0           0         264         494
+II                     4          87          17           0           0           0           0           0           2         110
+IV                     1          52         218          55          39          13           3           6          37         424
+total                106         156         347          55          39          13           3           6         303        1028
+
+Same, with IV.1/IV.2/IV.3/IV.4+ merged into IV:
+
+predicted              I          II         III          IV           Vunclassified
+I                    101          17         112           0           0         264
+II                     4          87          17           0           0           2
+IV                     1          52         218         110           6          37
+
+agreement (predicted family == first-pass family): 298 / 1028

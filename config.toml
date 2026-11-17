@@ -36,5 +36,116 @@ p_star_max_days = 30.0
 n_p_star = 1000            # brief asks ~300; runs are cheap (~0.5-4 s each), so 1000 resolves the bimodal branch-flipping
 results = "results/step4"
 
+[step5]
+# Work plan step 5: ~2000-system Lidov-Kozai-migration sample with a phase ensemble, features, first-pass classifier
+# (reproducing S16 Fig. 14). Everything not listed here (a0, e0, tides, SRFs, stellar constants) comes from [step4].
+# "brief" = the step 5 task text given by the main agent. First-pass thresholds are physics-motivated starting points
+# for hand validation, not tuned values.
+seed = 20261117                # brief: sample seed (numpy default_rng)
+n_sample = 3000                # brief: systems drawn; only those forming a hot Jupiter are classified
+m_p_mjup_range = [1.0, 5.0]    # brief: uniform
+p_star_days_range = [0.3, 50.0]   # brief: log-uniform
+a_b_au_range = [200.0, 500.0]  # brief: uniform
+theta_lb0_deg_range = [85.0, 89.9]   # brief: uniform
+n_members = 10                 # brief: K phase-ensemble members
+period_spread = 0.02           # brief: member P_star = P_star (1 + d), d = linspace(-spread, +spread, K)
+twin_angle_rad = 1.0e-8        # brief: twin of the middle member, initial S_hat rotated this far from L_hat
+n_procs = 10                   # brief: at most 10 worker processes
+ev_max = 100000                # ASSUMED: event-buffer rows per integration (min + max events); far above any case seen
+shape_ncycle_tk = 4.0          # ASSUMED: first integration length for the shape parameters, in analytic LK periods
+# Winding / LK-activity definitions
+lk_amp_min = 0.1               # ASSUMED: a cycle is an LK cycle while e_max - e_min >= this. S16 does not define it; the
+                               # brief's "LK suppressed" cannot be "no minima left", because e keeps small wiggles
+lock_tol = 0.1                 # brief: |W - round(W)| < 0.1 means locked
+last_frac = 0.5                # brief: lock statistics over the last 50% of the LK cycles
+first_frac = 0.1               # brief: and over the first 10%
+# First-pass classifier (applied in this order: I, III, IV.N, V, II)
+bimodal_gap_deg = 30.0         # brief: class I, largest gap in sorted theta_f
+bimodal_min_side = 2           # brief: class I, members on each side of the gap
+bimodal_side_range_deg = 20.0  # brief: class I, range within each side
+chaos_twin_deg = 10.0          # brief: class III, twin divergence
+chaos_range_deg = 30.0         # brief: class III, ensemble range
+advect_lock_frac = 0.5         # brief: class IV, locked fraction over the last window
+adiabatic_theta_deg = 5.0      # brief: class V, all theta_f below this
+adiabatic_min_w = 1.0          # brief: class V, |median W| above this
+stationary_theta_deg = 45.0    # ASSUMED: class II needs max theta_f below this (S16 Fig. 8: II stays below ~35 deg);
+                               # a regular system above it with no lock is flagged unclassified
+# Revised classifier v2 (findings 04): set from hand-labelled cases 1-30, evaluated on held-out cases 31-50.
+# Order: III if the 10 members + twin are not <= 2 tight clusters; I if member 0 swung past v2_swing_deg;
+# IV.N if W is within v2_lock_tol of one non-zero integer for >= v2_lock_frac of the LK-active cycles;
+# V if all theta_f < adiabatic_theta_deg and median |W| >= adiabatic_min_w; else II.
+v2_tight_deg = 25.0            # a "tight" cluster spans at most this (S16 Fig. 8 branch widths ~10-20 deg)
+v2_gap_deg = 30.0              # two clusters must be separated by at least this
+v2_swing_deg = 90.0            # non-adiabatic swing: member 0's theta_sl exceeds this at any e minimum (whole run;
+                               # measuring only the LK-active phase missed training case 19). S16 Fig. 9 left
+v2_lock_tol = 0.15             # |W - N| tolerance for a resonance lock
+v2_lock_frac = 0.3             # advection: W within v2_lock_tol of one non-zero N for >= this fraction of LK-active
+                               # cycles. Replaced a 10-consecutive-cycle rule that missed training cases 23 and 30
+                               # (LK-active phases of only 15-17 cycles); training IV cases score 0.35-0.99, II scores 0
+# S16 map as corrected in findings 01
+map_a_bar_split = 1.0          # S16 Fig. 14 dashed line
+map_n_max_split = 0.5          # S16 Fig. 14 dashed line (IV starts here)
+# Hand-validation
+handcheck_seed = 7             # brief
+handcheck_n = 50               # brief: 5 montages of 10
+results = "results/step5"
+
 [secrets]
 # None used.
+
+[step11]
+# Work plan step 11: REBOUND N-body spot check of the double-averaged (secular) equations, no dissipative tides.
+# Parameters of the orbit (masses, a0, e0, k_q, k_star, R_*, R_p) come from [step4]. "brief" = the step 11 task text.
+seed = 11                      # brief: 18 systems drawn with seed 11 (numpy default_rng)
+n_random = 15                  # brief says 18 drawn; 15 plain draws + 3 extreme (below) = 18, plus the 2 fiducials = 20
+n_extreme = 3                  # brief: include the 3 drawn systems with the highest predicted e_max
+n_pool = 2000                  # ASSUMED: extra draws (same rng, after the plain ones) searched for the extremes
+m_p_mjup_range = [1.0, 5.0]    # brief: step 5 ranges
+a_b_au_range = [200.0, 500.0]  # brief: step 5 ranges
+theta_lb0_deg_range = [85.0, 89.9]   # brief: step 5 ranges
+fiducial_theta_lb0_deg = [89.0, 87.0]  # S16 Fig. 8; the planet and a_b are [step4] values
+n_workers = 6                  # brief: at most 6 worker processes
+c_au_per_yr = 63241.077        # speed of light; same value as lkspin.secular.C_AU_PER_YR
+gr_force = "gr_full"            # REBOUNDx "gr_full" (full 1PN, all bodies). Measured: reproduces 3G(M*+Mp)n/(c^2 a j^2) to 1e-5; "gr" (Newhall) is 0.3% low, "gr_potential" 0.5% low; gr_full costs 22% more
+omega_deg = 0.0                # brief: omega = 0 (e0 along the node line, as the secular initial state)
+stop_cycles = 2.0              # brief: preferably 2 full LK cycles (first e_max plus one period)
+max_wall_hours = 4.0           # ASSUMED: wall-clock cap per N-body run; runs that hit it report what was reached
+n_per_orbit = 2                # ASSUMED: N-body samples per planet orbital period (the block average is over thousands of orbits; Python sampling costs ~40% of the run time)
+stop_margin_period = 0.1       # ASSUMED: N-body runs end this fraction of an LK period after the secular second e_max
+mean_window_p_out = 1.0        # ASSUMED: running-mean window, in outer binary periods (a whole number of planet orbits)
+peak_prominence_dex = 0.5      # ASSUMED: a peak of -log10(1-e) must stand this far above its surroundings to count as an e_max
+secular_rtol = 1e-10           # same as step 4 production runs
+secular_atol = 1e-12           # same as step 4 production runs
+secular_rec_max = 3000000      # ASSUMED: record buffer for the secular run
+chunk_every_blocks = 200       # ASSUMED: N-body checkpoint interval, in averaging blocks
+p_star_days = [0.3, 3.0, 30.0] # brief: spin periods for the precession-time indicator
+r_tide_coef = 2.7              # brief / A16: r_Tide = 2.7 R_p (M*/M_p)^(1/3)
+flag_fraction = 0.1            # ASSUMED: flag when P_orb*alpha > this (P_orb not << 1/alpha), or when t_near/P_out < 1/this
+results = "results/step11"
+
+[step6]
+# Work plan step 6 (sub-question SQ1, cases b-d) and step 10 (SQ5): re-run the 1028 step 5 hot-Jupiter systems with
+#   (b) spin-orbit feedback ON (A16 appendix "Spin Evolution Due to the Stellar Quadrupole", e_b = 0),
+#   (c) feedback + octupole (A16 Eqs. Lvec, evec; e_b != 0),
+#   (d) feedback + octupole + magnetic spin-down (A16 appendix "Stellar Spin-down due to Magnetic Braking").
+# Each stellar spin is integrated on its own orbit (the feedback makes the orbit depend on the spin), so a system is
+# 10 phase-ensemble members + the twin, 11 separate integrations. Masses, a0, e0, tides, SRFs, stellar constants,
+# stopping conditions, tolerances and the ensemble (offsets, twin) come from [step4] and [step5] unchanged.
+# "brief" = the step 6 task text given by the main agent; "A16" = arXiv:1510.08918v2, l. = line in ms_arxiv.tex.
+seed = 6                       # brief: numpy default_rng seed for the (e_b, azimuth) draws of case (c) and (d)
+e_b_range = [0.0, 0.8]         # brief (A16 Sec. final: e_b uniform in [0, 0.8]); drawn per step 5 sample index
+phi_b_range_rad = [0.0, 6.283185307179586]  # brief: azimuth of e_b-hat from +x (the initial node line / e_0 direction), uniform in [0, 2 pi)
+# Case (c)/(d) binary: a_b = a_b,step5 / sqrt(1 - e_b^2), so a_b,eff = a_b sqrt(1 - e_b^2) = a_b,step5 (A16 Eq. tk):
+# the quadrupole t_k is unchanged and only the octupole (eps_oct) is added. brief.
+alpha_mb_yr = 1.5e-14          # A16 l.1903: G star, Omega-dot = -alpha_MB Omega^3 (case d); spin-down starts at t = 0 (ASSUMED: stellar age 0)
+fb_mult = 1.0                  # feedback strength multiplier on dL/dt|SL and de/dt|SL (1 = A16; 0 recovers case (a), a validation switch)
+n_procs = 10                   # brief: at most 10 worker processes
+results = "results/step6"
+# Analysis (scripts/step6_analyze.py, scripts/step10_sq5.py)
+n_boot = 2000                  # brief: bootstrap samples
+boot_seed = 6                  # ASSUMED: numpy default_rng seed of the analysis bootstrap
+ci_percent = [2.5, 97.5]       # 95% bootstrap interval
+baseline_split_seed = 5        # same as scripts/step5_baselines.py (SEED): random half for fitting the baselines
+sq5_n_bins = 10                # ASSUMED: log-spaced S/L bins between the sample's extremes
+sq5_fraction_levels = [0.1, 0.5]   # brief: class-change fractions to locate
+results_sq5 = "results/step10"
