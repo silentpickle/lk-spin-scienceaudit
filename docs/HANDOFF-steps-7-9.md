@@ -70,6 +70,7 @@ Runs are cheap: one migrating system takes 0.5–10 s. The full step 5 sample of
 - **The classifier was never re-validated with back-reaction.** v2 was hand-validated only without it. Check it before relying on IV versus II there.
 - **Large intermediates are not in git.** These are `results/**/series*.npz` and the `chunks/` directories. Since 2026-11-18 they are on the `v0.1-first-results` release: fetch them with `scripts/fetch_data.sh`, as described in `docs/DATA.md`, rather than regenerating them. Classification (`step5_classify.py`, `step6_analyze.py`) needs the series.
 - **Kickoff prompt for the Fable session:** [`HANDOFF-fable-prompt.md`](HANDOFF-fable-prompt.md).
+- **2026-11-18, Fable session, paused.** Done: Stage 0 (the "Fable plan" below) and unit T0, `lkspin/numshape.py`, which builds the shape functions from any LK cycle of a `secular.py` orbit and is validated (`results/step9/t0_validation.json`). Learned: first-cycle $\hat\Omega_L$ and $\hat\psi_0/\hat\Omega_L$ are 0.190 and 0.189 at 87°, 0.067 and 0.066 at 89° (SRFs on). Not done: 9a onward. Two responses were stopped by an automated safety classifier; what that cost and the open questions are in [`PROCESS-LOG-steps-7-9.md`](PROCESS-LOG-steps-7-9.md). Next: 9a.
 
 ## Prepared data (2026-11-18, findings 07)
 

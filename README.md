@@ -27,7 +27,7 @@ The brief's work plan, step by step:
 | 11 | N-body spot check (REBOUND), 20 systems | done; secular equations match direct N-body to under 1% in $1-e_{\max}$ and 0.1% in timing; no breakdown flags | [06](docs/findings/06-nbody-spot-check.md) |
 | prep | Compute groundwork for SQ2 and SQ4; sensitivity to assumed parameters | done | [07](docs/findings/07-prep-data-and-sensitivity.md) |
 | job 4 | Which part of feedback does what | done; apsidal precession stops migration, rotation of the orbit about the spin changes classes | [08](docs/findings/08-feedback-channels.md) |
-| 7–9 (SQ2–SQ4) | Theory: bimodal peaks, capture probabilities, chaos mechanism | not started; see [handoff](docs/HANDOFF-steps-7-9.md) | — |
+| 7–9 (SQ2–SQ4) | Theory: bimodal peaks, capture probabilities, chaos mechanism | **paused** after planning and one tool (numerical shape functions, validated); no physics result yet; see [handoff](docs/HANDOFF-steps-7-9.md) | [process log](docs/PROCESS-LOG-steps-7-9.md) |
 
 ## Quick start
 
