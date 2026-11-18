@@ -266,3 +266,33 @@ p_planet0_hours = 20.0         # task
 r_star_rsun = 0.9              # task
 [sens4.variant.rs_1p1]
 r_star_rsun = 1.1              # task
+
+[step9]
+# Step 9 T0 validation of lkspin/numshape.py (numerical hat shape functions and the spin Hamiltonian).
+# Physics from [step4]. "task" = the step 9 task text given by the main agent.
+results = "results/step9"
+n_t = 32768                    # ASSUMED: pass-1 uniform-t intervals (a 2^13 grid already agrees to 2e-8, so this has margin)
+n_tau = 16384                  # ASSUMED: pass-2 uniform-tau points
+m_max = 10                     # task: Fourier coefficients 0..10
+rtol = 1e-12                   # ASSUMED: orbit integration for the shapes (t_b to ~1e-9 relative; at 1e-11 t_b is off by 3e-8)
+atol = 1e-14                   # ASSUMED
+gate1_theta_lb0_deg = 85.0     # task (S15 Fig. 2 orbit, SRFs off)
+gate1_coef_tol = 1e-4          # task: max |X_hat_M - sn X_M| / (sn beta_0)
+gate1_nmax_tol = 1e-5          # task: relative difference of nmax_coef * eps_1 and sn
+gate2_theta_lb0_deg = [87.0, 89.0]   # task (SRFs on, tides off)
+gate2_conv_tol = 1e-6          # task: change on doubling n_t and n_tau, relative to beta_hat_0
+gate2_ref_tol = 2e-3           # task: expected size of the difference to the trapezoid reference (reported, not a gate)
+gate3_theta_lb0_deg = 87.0     # task
+gate3_p_star_days = [3.8, 12.0, 30.0]   # task
+gate3_ics = [[0.5, 1.0], [-0.3, 4.0]]   # task: (p0, phi0)
+gate3_n_cycles = 20            # task
+gate3_rtol = 1e-11             # task: Hamiltonian integration (DOP853)
+gate3_atol = 1e-13             # task
+gate3_dp_tol = 1e-5            # task
+gate3_dphi_tol = 1e-4          # task
+spin_rtol = 1e-10              # [step4] production tolerance for the secular spin integration
+spin_atol = 1e-12              # [step4] production tolerance
+gate3_tight_rtol = 1e-12       # ASSUMED: diagnostic rerun of gate 3 with minima times and spins at this tolerance (the [step4] 1e-10 times jitter by 2e-6 of a period)
+gate3_tight_atol = 1e-14       # ASSUMED
+gate3_tight_ev_max = 256       # ASSUMED: event rows for the tight minima search
+gate3_tight_t_stop_periods = 1.5   # ASSUMED: search length in units of (n_cycles + 1) analytic periods

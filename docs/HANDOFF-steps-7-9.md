@@ -79,3 +79,37 @@ Compute-only groundwork is ready:
 - **Sensitivity.** Our 5% coefficient offset from S16 is $R_\star$ ($\propto R_\star^3$). The 30 d branch is generic phase sensitivity.
 
 - **Feedback channels (findings 08).** Apsidal precession from the stellar quadrupole is what stops migration. The rotation of the orbit about $\hat S$ is what changes outcome classes; on its own it reproduces the full SQ5 curve. When splitting feedback terms, keep $\mathbf L$ and $\mathbf e$ rotating together (cases b_P / b_F), or $\mathbf e$ leaves the orbit plane.
+
+## Fable plan (2026-11-18, Stage 0)
+
+Written by the Claude Fable 5.2 session before any new computation. What was run, why, and what each result decided
+is logged unit by unit in [`PROCESS-LOG-steps-7-9.md`](PROCESS-LOG-steps-7-9.md); the reasoning for each result goes in
+that step's findings file. Order: 9, 7, 8. Every run is minutes on 14 cores unless marked **long**; long runs are
+chunked and resumable and will be handed over as a terminal command.
+
+**Two ideas the plan rests on (both are leads until the tests below pass):**
+- S16's $N=0$ Hamiltonian is exactly Colombo's top, with $\eta\cos I=\epsilon\psi_0=1/\bar{\mathcal B}$ and $\eta\sin I=\epsilon\beta_0=1/(2\bar{\mathcal A})$. Its separatrix splits the sphere into three zones with areas $A_I+A_{II}+A_{III}=4\pi$. The aligned spin sits exactly on the separatrix at $\bar{\mathcal A}=1$ when $\psi_0=0$.
+- Averaging over an LK cycle is valid only while $\hat L$ moves little per cycle, and $\hat L$ moves $2\pi\hat\Omega_L$ rad per cycle. So $\hat\Omega_L$ measures how badly the $N=0$ picture fails.
+
+**Deviation from the kickoff prompt.** 9a asks for `shape.exact_resonances` with no SRFs, compared against `results/prep_sq4/`. That data has SRFs on (at 87° the SRFs change $1-e_{\max}$ sevenfold), so the comparison would be between two different orbits. The numerical shape functions of 9d are therefore built first, as unit T0, and 9a uses them.
+
+| Unit | Decisive computation | Prediction fixed in advance | Kill criterion |
+|---|---|---|---|
+| **T0** numerical shapes [W] | `lkspin/numshape.py`: $\beta,\gamma,\psi(\tau)$, $N_{\max}$, $\bar{\mathcal A}$, $\bar{\mathcal B}$, $C_N$ from one LK cycle of a `secular.py` orbit | — (validation gate) | Gate: SRFs off at 85° must match `shape.py` ($\beta_0,\psi_0,\mathcal N$, $C_N$ for $\lvert N\rvert\le10$) to $10^{-4}$; integrating S16 Eq. kozaiham with the numerical shapes must reproduce `secular.py` $(p,\phi)$ at minima over 50 cycles. Nothing downstream runs until it passes. |
+| **9a** overlap test [W] | Exact first-order resonances from T0 shapes against existing FTLE: 87° and 89° scans (600 points) and the $\hat\Omega_L$ test (120 points). No new integrations. | Aligned spin is chaotic iff the resonance attached to $p=1$ overlaps a neighbour, under each of the four readings of findings 02 | Balanced accuracy below 0.75 on the $N_{\max,0}<1$ points for every reading: first-order overlap is not the mechanism; go to 9b |
+| **9b.0** scoreboard map [W] **long?** | Frozen FTLE of the aligned spin over $\hat\Omega_L$ (40 cached orbits, 85–89.9°) × $N_{\max,0}\in[0.15,3]$ (about 120 $P_\star$). 3-orbit pilot first. Odd-numbered orbits are held out before anything is plotted. | — (this is what every candidate is scored on) | — |
+| **9b.1** $N=0$ separatrix layer [W] | Where is the pole relative to the Colombo separatrix: $\bar{\mathcal A}_c$ (separatrix born) and $\bar{\mathcal A}_{\rm det}$ (pole on it), from T0's $\beta_0,\psi_0$ | Chaos at $N_{\max,0}<1$ only in a window around $\bar{\mathcal A}_{\rm det}$, widening steeply with $\hat\Omega_L$; none where no separatrix exists | Chaos where $\bar{\mathcal A}_0<\bar{\mathcal A}_c$, or under 80% of chaotic points inside the window. The existing $N_{\max,0}=0.3$ column (chaos at $\bar{\mathcal A}_0$ = 0.53–0.72) may already kill it there. |
+| **9b.2** Mathieu / half-integer [W] | Newton-solve the fixed point of the one-LK-cycle map that continues from the pole; Greene residue $R$ and rotation number | Chaos tongues at rotation number ½, i.e. $R>1$ (period doubling) near $N_{\max}\approx\tfrac12,\tfrac32$ | $0<R<1$ throughout the chaotic $N_{\max,0}<1$ points |
+| **9b.3** secondary resonances [W] | Winding number of the aligned orbit against $P_\star$ on the 9b.0 map | Each chaotic band is bracketed by locked plateaus $W=m/k$ whose measured widths overlap | No plateaus next to the bands |
+| 9b fallback | Empirical boundary $\hat\Omega_{L,\rm crit}(N_{\max,0})$ with bootstrap intervals | — | — |
+| **9c** threshold [W] | From the surviving mechanism, or the map: a migrating system is chaotic if its track ($N_{\max}$ rising as $a$ decays) crosses any chaotic band | $\hat\Omega_{L,\rm crit}^{\rm tides}=\min_{N\ge N_{\max,0}}\hat\Omega_{L,\rm crit}^{\rm frozen}(N)$, computed before comparing with step 5's 0.13–0.15 on a held-out half of the predicted-IV systems | Off by more than 0.03: report the gap and test the drift of $\hat\Omega_L$ itself in 9d |
+| **9d** realistic [W] | T0 shapes at about 6 epochs along the 87° and 89° migration tracks; frozen FTLE at each | Union of chaotic $P_\star$ bands over epochs matches the scatter bands in `results/step4/scan_{87,89}.npz` | Bands disagree by more than 20% in $P_\star$ |
+| **7a** drifting areas [W] | $(N_{\max},\bar{\mathcal A},\bar{\mathcal B})(t)$ per LK cycle along each of the 20 tracks (orbit only), and $A_I,A_{II},A_{III}(t)$; $J_0$ = area of the orbit through the pole at $t=0$ | — (gate: areas sum to $4\pi$; closed form at $\psi_0=0$; measured area of the true spin's stroboscopic orbit is constant to a few % until crossing) | Gate fails: the invariant is not conserved, SQ2's premise is wrong, report as negative |
+| **7b** peak formula [W] | $A_{II}(t_c)=J_0$ gives $t_c$; $\cos\theta^{\rm low}=1-A_I(t_c)/2\pi$, $\cos\theta^{\rm high}=-1+A_{III}(t_c)/2\pi$; reduces to $\pm J_0/4\pi$ when $\psi_0=0$ | Hand check at Stage 0: 89°/30 d gives ±0.72 against a measured half-difference of 0.715; 27 d gives 0.756 against 0.748. Development set: the 4 fiducials and even-numbered `v2_*`. Held out: odd-numbered `v2_*`. | Median error above 5° on the held-out set |
+| **7c** branch weights [W] | Henrard: $p_{\rm high}=\dot A_{III}/(\dot A_I+\dot A_{III})$ at $t_c$ | Inside ensemble A's 95% interval | Outside it for more than 1 of the 4 fiducials |
+| **7d** misaligned start [W] | $J_0(\theta_{sl,0},\text{azimuth})$ distribution pushed through 7b | Shift of the high peak at 30°: large at 89°, small at 87° | Wrong inclination trend, or shift off by more than 5° |
+| **8a** capture fractions [W] | Locked fraction per IV.$N$ class from `results/step5/series.npz`; new ensembles only where under 20 members | — | — |
+| **8b** capture probability [W] | Henrard/Neishtadt ratio of separatrix-area rates for the single-resonance $H_N$ with drifting $C_N(t),N_{\max}(t)$; exit when $A_{\rm res}(t)=J$ | Formula first checked on a pendulum with slowly varying length (textbook case), then compared with 8a on a held-out half | Toy check fails: implementation wrong. Held-out fractions outside binomial 95% intervals for more than a third of bins: report as negative. |
+| **8c** striations [W] | $\theta_{sl,f}$ against $P_\star$ with predicted $N$ per striation, against measured $W$ locks | Labels agree | More than 10% mislabelled |
+
+Pauses as in the kickoff prompt: after 9e, 7e, 8d, and before the release.
