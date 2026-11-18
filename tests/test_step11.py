@@ -49,3 +49,24 @@ def test_flags_flag_close_to_roche():
          **{f"porb_alpha_P{p:g}d": 0.0 for p in C.CFG["p_star_days"]}}
     assert C.flags(b)["flag_roche"]
     assert not C.flags(b)["flag_double_avg"]
+
+
+N_BLOCKS = 4
+T_END_FAR = 1e9
+BUDGET_FAR_S = 1e9
+
+
+def _run_in(monkeypatch, tmp_path, blocks_per_session):
+    monkeypatch.setattr(C, "CHUNK_DIR", tmp_path / "chunks")
+    monkeypatch.setattr(N, "STATE_DIR", tmp_path / "state")
+    for n in blocks_per_session:
+        N.run_session(FIDUCIAL, T_END_FAR, BUDGET_FAR_S, max_blocks=n)
+    return np.load(tmp_path / "chunks" / f"{FIDUCIAL.name}.npz")
+
+
+def test_resume_reproduces_uninterrupted_rows(monkeypatch, tmp_path):
+    whole = _run_in(monkeypatch, tmp_path / "whole", [N_BLOCKS])
+    halves = _run_in(monkeypatch, tmp_path / "halves", [N_BLOCKS // 2, N_BLOCKS // 2])
+    assert len(whole["t"]) == len(halves["t"]) == N_BLOCKS
+    for col in N.COLUMNS:
+        assert np.array_equal(whole[col], halves[col]), col

@@ -29,6 +29,16 @@ def load_nbody(name: str) -> dict | None:
     return {k: v for k, v in np.load(path).items()}
 
 
+def run_status(name: str, nb: dict | None) -> str:
+    if nb is None:
+        return "not started"
+    if bool(nb["complete"]):
+        return "complete"
+    if name in C.CFG["legacy_capped_no_state"]:
+        return "capped, no state"
+    return "running or paused (resumable)"
+
+
 def rel(a: float, b: float) -> float:
     return a / b - 1.0 if b and not math.isnan(a) else math.nan
 
@@ -58,11 +68,12 @@ def nbody_summary(nb: dict | None) -> dict:
 
 def system_row(sys_: C.System) -> dict:
     gr, full = C.secular_summary(sys_, "gr"), C.secular_summary(sys_, "full")
-    nb = nbody_summary(load_nbody(sys_.name))
+    raw = load_nbody(sys_.name)
+    nb = nbody_summary(raw)
     b = C.breakdown(sys_, full["emax1"], gr["emax1"])
     row = {"name": sys_.name, "kind": sys_.kind, "m_p_mjup": sys_.m_p_mjup, "a_b_au": sys_.a_b_au,
            "theta_lb0_deg": sys_.theta_lb0_deg, "mean_anom_planet_rad": sys_.mean_anom_planet,
-           "mean_anom_comp_rad": sys_.mean_anom_comp, "t_k_yr": b["t_k"]}
+           "mean_anom_comp_rad": sys_.mean_anom_comp, "t_k_yr": b["t_k"], "nb_status": run_status(sys_.name, raw)}
     row |= {f"sec_gr_{k}": v for k, v in gr.items() if k not in ("tk", "n_peaks")}
     row |= {f"sec_full_{k}": v for k, v in full.items() if k not in ("tk", "n_peaks")}
     row |= {f"nb_{k}": v for k, v in nb.items()}

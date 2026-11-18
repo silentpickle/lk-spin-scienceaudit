@@ -104,12 +104,13 @@ m_p_mjup_range = [1.0, 5.0]    # brief: step 5 ranges
 a_b_au_range = [200.0, 500.0]  # brief: step 5 ranges
 theta_lb0_deg_range = [85.0, 89.9]   # brief: step 5 ranges
 fiducial_theta_lb0_deg = [89.0, 87.0]  # S16 Fig. 8; the planet and a_b are [step4] values
-n_workers = 6                  # brief: at most 6 worker processes
+n_workers = 10                 # coordinator instruction for the step 11 restart (brief said at most 6 earlier)
 c_au_per_yr = 63241.077        # speed of light; same value as lkspin.secular.C_AU_PER_YR
 gr_force = "gr_full"            # REBOUNDx "gr_full" (full 1PN, all bodies). Measured: reproduces 3G(M*+Mp)n/(c^2 a j^2) to 1e-5; "gr" (Newhall) is 0.3% low, "gr_potential" 0.5% low; gr_full costs 22% more
 omega_deg = 0.0                # brief: omega = 0 (e0 along the node line, as the secular initial state)
 stop_cycles = 2.0              # brief: preferably 2 full LK cycles (first e_max plus one period)
-max_wall_hours = 4.0           # ASSUMED: wall-clock cap per N-body run; runs that hit it report what was reached
+two_cycle_max_yr = 2.2e7        # ASSUMED: systems whose secular second e_max is later than this are run only through the first e_max (compute budget)
+max_wall_hours = 4.0           # ASSUMED: wall-clock budget per SESSION per run. Hitting it pauses the run (state is checkpointed, rerun resumes); complete means t >= target only
 n_per_orbit = 2                # ASSUMED: N-body samples per planet orbital period (the block average is over thousands of orbits; Python sampling costs ~40% of the run time)
 stop_margin_period = 0.1       # ASSUMED: N-body runs end this fraction of an LK period after the secular second e_max
 mean_window_p_out = 1.0        # ASSUMED: running-mean window, in outer binary periods (a whole number of planet orbits)
@@ -121,6 +122,7 @@ chunk_every_blocks = 200       # ASSUMED: N-body checkpoint interval, in averagi
 p_star_days = [0.3, 3.0, 30.0] # brief: spin periods for the precession-time indicator
 r_tide_coef = 2.7              # brief / A16: r_Tide = 2.7 R_p (M*/M_p)^(1/3)
 flag_fraction = 0.1            # ASSUMED: flag when P_orb*alpha > this (P_orb not << 1/alpha), or when t_near/P_out < 1/this
+legacy_capped_no_state = []      # R01, R06, R08, R09, R14 were stopped by the old hard 4 h cap without saved state; their partial chunks are kept in results/step11/legacy_capped/ and the five are rerun from scratch with checkpointing (owner had spare cores)
 results = "results/step11"
 
 [step6]

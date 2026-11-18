@@ -1,0 +1,8 @@
+R03 complete=True t=4.060e+07/4.060e+07 wall=14376s steps=1127754063
+R14 complete=False t=4.175e+07/8.346e+07 wall=14400s steps=1113666385
+R06 complete=False t=4.211e+07/4.444e+07 wall=14401s steps=1126052992
+R09 complete=False t=4.249e+07/7.882e+07 wall=14401s steps=1121420315
+R08 complete=False t=4.350e+07/6.954e+07 wall=14401s steps=1119512652
+R01 complete=False t=4.057e+07/9.768e+07 wall=14401s steps=1110849669
+/Users/davidcrandall/.local/share/uv/python/cpython-3.12.13-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 6 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

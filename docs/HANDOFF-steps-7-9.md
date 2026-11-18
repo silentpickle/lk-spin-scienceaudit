@@ -63,7 +63,7 @@ Runs are cheap: one migrating system takes 0.5–10 s. The full step 5 sample of
 
 ## State at handoff (2026-11-17)
 
-- **Steps 1–6 and 10 are complete and committed** (findings 01–05). Step 11 (N-body) will be findings 06; check `git log` and `docs/findings/` for whether it landed.
+- **Steps 1–6, 10 and 11 are complete and committed** (findings 01–06). Step 11 shows the secular equations hold in this parameter range, matching direct N-body to under 1% in $1-e_{\max}$. Long N-body runs are checkpointed and resumable (`results/step11/state/`).
 - **SQ1 is a negative result under fuller physics.** With back-reaction on, S16's map is no better than $\theta_{lb}^0$ alone in all three cases (findings 05). Advection (IV) all but disappears, from 162 systems to 0–2, and a third of the systems stop migrating in every ensemble member. This changes the stakes for SQ3: capture into resonance matters in S16's idealised model and at slow spins, but with back-reaction on, the advected population is tiny. State that up front in SQ3.
 - **SQ5:** with back-reaction on, the outcome class changes for more than 10% of systems above $S/L\approx0.11$ and more than 50% above 0.59, with $S/L$ at the first $e_{\max}$.
 - **A16's printed octupole $d\mathbf L/dt$ (Eq. Lvec, l.1763) has $(\mathbf e\cdot\hat L_b)$ in place of $(\mathbf e\cdot\hat e_b)$ twice.** The corrected form is implemented and checked against conservation laws and REBOUND (findings 05).

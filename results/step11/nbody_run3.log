@@ -1,0 +1,11 @@
+R13 complete=True (complete) t=9.753e+06/9.752e+06 wall=3664s steps=280897761
+R10 complete=True (complete) t=1.157e+07/1.157e+07 wall=4443s steps=340805873
+R11 complete=True (complete) t=1.228e+07/1.228e+07 wall=4944s steps=376178819
+R04 complete=True (complete) t=1.281e+07/1.281e+07 wall=5116s steps=391571017
+R02 complete=True (complete) t=1.513e+07/1.513e+07 wall=5637s steps=440013739
+R00 complete=True (complete) t=1.505e+07/1.504e+07 wall=5799s steps=452251408
+R07 complete=True (complete) t=1.680e+07/1.680e+07 wall=6108s steps=480791078
+R12 complete=True (complete) t=1.918e+07/1.918e+07 wall=6812s steps=549647512
+R05 complete=True (complete) t=9.035e+06/9.034e+06 wall=3226s steps=277949191
+F87 complete=True (complete) t=2.273e+07/2.273e+07 wall=8007s steps=649376820
+F89 complete=True (complete) t=2.272e+07/2.271e+07 wall=8026s steps=654890371
