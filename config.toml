@@ -151,3 +151,105 @@ baseline_split_seed = 5        # same as scripts/step5_baselines.py (SEED): rand
 sq5_n_bins = 10                # ASSUMED: log-spaced S/L bins between the sample's extremes
 sq5_fraction_levels = [0.1, 0.5]   # brief: class-change fractions to locate
 results_sq5 = "results/step10"
+
+[prep_sq2]
+# Prep job 1 (data for SQ2 theory): branch probabilities and peak locations of class I systems from phase ensembles.
+# Physics comes from [step4] (SRFs + weak-friction tides, no feedback, e_b = 0). "task" = the prep-job task text given by the main agent.
+seed = 12                      # task: seed for the stratified choice of the v2 class I systems; ensemble seeds are default_rng([seed, system, ensemble code])
+fiducial_theta_lb0_deg = [89.0, 89.0, 87.0, 87.0]   # task: S16 fiducials (5 M_J, a0 1.5 AU, a_b 300 AU from [step4])
+fiducial_p_star_days = [30.0, 27.0, 30.0, 20.0]     # task
+n_v2_systems = 16              # task: v2 class I systems from results/step5/labels_v2.npz + features.npz
+a_bar0_range = [0.05, 1.0]     # task: stratify over this A_bar_0 range, log-spaced bins, one system per bin
+n_members = 200                # task: ensemble size
+jitter_max = 0.05              # task: ensemble A, P_star scaled by (1 + d), d uniform in [-5%, +5%]
+wide_jitter_max = 0.30         # ASSUMED: supplementary ensemble W, P_star scaled by (1 + d), d uniform in +-30% (the +-5% ensemble leaves most low-A_bar_0 systems on one branch); not a fixed-P_star probability
+misalign_deg = [10.0, 20.0, 30.0]   # task: ensemble C initial theta_sl,0 (fiducials only)
+control_misalign_deg = 1.0     # ASSUMED: extra near-aligned control with the same azimuth sampling as C, to separate the azimuth-phase effect from the tilt effect
+convergence_sizes = [50, 100, 200]  # task: member counts for the convergence check
+n_boot = 2000                  # ASSUMED: bootstrap resamples (same as [step6] n_boot)
+boot_seed = 12                 # ASSUMED: bootstrap rng seed
+ci_percent = [2.5, 97.5]       # task: 95% interval
+tight_deg = 25.0               # [step5] v2_tight_deg: a branch spans at most this
+gap_deg = 30.0                 # [step5] v2_gap_deg: two branches are separated by at least this
+mode_gap_deg = 10.0            # ASSUMED: gaps at least this split the sorted theta_f into modes when looking for a third mode
+mode_min_frac = 0.05           # ASSUMED: a mode counts only if it holds at least this fraction of the members
+e0_vector_amp = 0.01           # [step4] e0, the initial eccentricity vector length rotated in ensemble B
+chunk_members = 25             # ASSUMED: ensemble B members per resumable chunk file
+n_procs = 14                   # task: up to 14 processes
+results = "results/prep_sq2"
+
+[prep_sq4]
+# Prep job 2 (data for SQ4): chaos maps in the non-dissipative, SRF-modified setting. Physics from [step4] with tides OFF,
+# SRFs ON, a fixed at a0, no feedback, e_b = 0. The orbit then does not depend on P_star: one orbit per theta_lb0.
+theta_lb0_deg = [87.0, 89.0]   # task (a)
+n_p_star = 300                 # task (a)
+p_star_range_days = [1.0, 40.0]   # task (a), log-spaced
+twin_angle_rad = 1.0e-9        # task (a)
+n_cycles = 1000                # task (a)
+spread_cycles = 500            # task (a): theta_sl spread over the last this-many cycles
+sat_rad = 0.1                  # ASSUMED: the FTLE fit stops where the separation first reaches this (the linear regime ends well below pi)
+min_fit_points = 4             # ASSUMED: minimum points in the FTLE fit (k = 0 included)
+ftle_chaos_per_cycle = 0.02    # ASSUMED: FTLE above this counts as chaotic. Measured gap in scan (a): regular systems have FTLE < 1.1e-3, chaotic ones > 0.03; pure linear (shear) growth would give 0.007 (summary.json shear_baseline_fit)
+spread_chaos_deg = 5.0         # ASSUMED: theta_sl std over the last cycles above this counts as spread (cf. [step5] chaos_range_deg = 30 for ranges)
+chunk_p = 10                   # ASSUMED: P_star values per resumable chunk (each carries aligned + twin spins)
+sections_theta_lb0_deg = 87.0  # task (b)
+sections_p_star_days = [3.0, 3.8, 4.7, 5.5, 7.5, 9.0, 12.0, 30.0]   # task (b): 8 values spanning 3-30 d. Chosen after scan (a) at 87 deg: FTLE > 0.02 at 3.0, 4.7, 7.5 and 9.0 d; regular (FTLE < 1e-3) at 3.8, 5.5, 12 and 30 d
+sections_n_p0 = 20             # task (b): 20 p0 values x 2 phi0 = 40 initial conditions
+sections_p0_max = 0.98         # task (b)
+sections_n_cycles = 800        # task (b)
+omega_n_max0 = [0.3, 0.7, 1.5] # task (c)
+omega_theta_range_deg = [85.0, 89.9]   # task (c)
+omega_n_theta = 40             # task (c)
+validate_theta_lb0_deg = 85.0  # task validation: the step 3 analytic orbit (S15 Fig. 12), SRFs off
+validate_eps_range = [0.008, 1.0]   # S15 Fig. 12 range (as results/step3/bifurcation_fig12.npz)
+validate_n_eps = 200           # ASSUMED
+validate_spread_cycles = 250   # ASSUMED: step 3 data has 500 cycles; spread over the last half, as the task's last-500-of-1000 rule
+rtol = 1e-10                   # [step4] production tolerance
+atol = 1e-12                   # [step4] production tolerance
+n_procs = 14                   # task
+results = "results/prep_sq4"
+
+[sens4]
+# Prep job 3: one-at-a-time sensitivity of the step 4 reproduction to the values [step4] marks ASSUMED. Baseline = [step4].
+# Each variant table overrides [step4] keys; `bulge_coef` is the make_params argument (baseline 7.5 = A16 Eq. omega_tide_p).
+theta_lb0_deg = [89.0, 87.0]   # task
+n_p_star = 200                 # task: log-spaced in [0.1, 30] d, taken as every k-th point of the step 4 1000-point grid so the baseline can be compared point for point
+p_star_min_days = 0.1          # task
+p_star_max_days = 30.0         # task
+step4_grid_points = 1000       # [step4] n_p_star
+extra_p_star_days = [29.87]    # task: S16 Fig. 10 blue circle
+fine_p_star_range_days = [24.0, 30.0]   # ASSUMED: extra fine grid over the bimodal edge, to estimate the branch fraction
+fine_p_star_n = 61             # ASSUMED
+s16_nmax_coef = 3.34           # S16 l.651 (89 deg)
+s16_abar_coef = 25.5           # S16 l.673 (89 deg)
+s16_theta_30d_deg = 134.0      # findings 03 (S16 Fig. 8 / Fig. 10 red cross)
+s16_theta_29_87d_deg = 42.0    # findings 03 (S16 Fig. 10 blue circle)
+chaos_band_87_days = [0.5, 9.0]   # findings 03 table: S16 and our class III band at 87 deg is about 9 d to 0.5 d
+bimodal_min_days = [26.0, 15.0]   # findings 03 table: class I begins near this P_star at 89 and 87 deg
+branch_split_deg = 90.0        # ASSUMED: above this is the "high" branch (branches sit near 40 and 135 deg)
+stop_t_gyr_extended = 15.0     # ASSUMED: variants that do not form a hot Jupiter within [step4] stop_t_gyr are rerun to this and flagged
+n_procs = 14                   # task
+results = "results/sens4"
+
+[sens4.variant.chi_5]
+chi = 5.0                      # task (baseline 10, ASSUMED in [step4])
+[sens4.variant.chi_20]
+chi = 20.0                     # task
+[sens4.variant.rp_0p9]
+r_p_rjup = 0.9                 # task
+[sens4.variant.rp_1p2]
+r_p_rjup = 1.2                 # task
+[sens4.variant.e0_0p001]
+e0 = 0.001                     # task
+[sens4.variant.e0_0p05]
+e0 = 0.05                      # task
+[sens4.variant.bulge_15]
+bulge_coef = 15.0              # task / findings 03: the potential (A16 Eq. epsitide) implies 15, the equation of motion 7.5
+[sens4.variant.pp_5h]
+p_planet0_hours = 5.0          # task
+[sens4.variant.pp_20h]
+p_planet0_hours = 20.0         # task
+[sens4.variant.rs_0p9]
+r_star_rsun = 0.9              # task
+[sens4.variant.rs_1p1]
+r_star_rsun = 1.1              # task

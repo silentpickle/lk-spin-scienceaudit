@@ -69,3 +69,10 @@ Runs are cheap: one migrating system takes 0.5–10 s. The full step 5 sample of
 - **A16's printed octupole $d\mathbf L/dt$ (Eq. Lvec, l.1763) has $(\mathbf e\cdot\hat L_b)$ in place of $(\mathbf e\cdot\hat e_b)$ twice.** The corrected form is implemented and checked against conservation laws and REBOUND (findings 05).
 - **The classifier was never re-validated with back-reaction.** v2 was hand-validated only without it. Check it before relying on IV versus II there.
 - **Large intermediates are not in git, because they regenerate.** These are `results/**/series*.npz` and the `chunks/` directories. `scripts/step5_run.py` takes about 3 minutes on an idle machine; `scripts/step6_run.py --case {b,c,d}` takes about 45 minutes under load. Classification (`step5_classify.py`, `step6_analyze.py`) needs the series.
+
+## Prepared data (2026-11-18, findings 07)
+
+Compute-only groundwork is ready:
+- **SQ2.** Converged branch probabilities and peaks for the four fiducials and 16 class I systems, and the misaligned-spin peak shifts (`results/prep_sq2/`). Use $P_\star$ jitter, not $\omega_0$, as the phase variable. Low-$\bar{\mathcal A}_0$ systems need wider sampling.
+- **SQ4.** FTLE scans, sections and an $\hat\Omega_L$ test in the frozen-shape system (`results/prep_sq4/`). S16's 87° chaos is already present at $t=0$ up to 9.7 d. At fixed $N_{\max,0}$, $\hat\Omega_L\ge0.21$ is a sharp chaos threshold. Use FTLE, not $\theta_{sl}$ spread, to identify chaos.
+- **Sensitivity.** Our 5% coefficient offset from S16 is $R_\star$ ($\propto R_\star^3$). The 30 d branch is generic phase sensitivity.

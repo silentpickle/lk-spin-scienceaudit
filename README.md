@@ -25,6 +25,7 @@ The brief's work plan, step by step:
 | 6 (SQ1) | The map under back-reaction, octupole and spin-down | done; **negative result**: with back-reaction the map is no better than $\theta_{lb}^0$ alone, and advection all but vanishes | [05](docs/findings/05-sq1-full-physics-and-sq5-feedback.md) |
 | 10 (SQ5) | Back-reaction threshold | done; class changes exceed 10% at $S/L\approx0.11$ and 50% at 0.59 | [05](docs/findings/05-sq1-full-physics-and-sq5-feedback.md) |
 | 11 | N-body spot check (REBOUND), 20 systems | done; secular equations match direct N-body to under 1% in $1-e_{\max}$ and 0.1% in timing; no breakdown flags | [06](docs/findings/06-nbody-spot-check.md) |
+| prep | Compute groundwork for SQ2 and SQ4; sensitivity to assumed parameters | done | [07](docs/findings/07-prep-data-and-sensitivity.md) |
 | 7–9 (SQ2–SQ4) | Theory: bimodal peaks, capture probabilities, chaos mechanism | not started; see [handoff](docs/HANDOFF-steps-7-9.md) | — |
 
 ## Quick start
