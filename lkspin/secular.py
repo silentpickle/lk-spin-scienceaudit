@@ -549,8 +549,11 @@ def run_diag(y0, par, p_star_days, t_stop_yr, rtol=RTOL_DEFAULT, atol=ATOL_DEFAU
 # Spin-down due to Magnetic Braking") and carry octupole LK terms (A16 Eqs. Lvec, evec). State layout:
 #   y = [l(3), e(3), s, S(3), Psi]   (N_ORBIT + 3 + 1 = 11 entries; Psi = winding phase as in run_diag)
 # Nothing above this line is changed: the callers of run, run_diag and advance keep bit-identical results.
-P_FB, P_EOCT, P_QX, P_QY, P_ISTAR, P_ALPHA_MB = range(NPAR, NPAR + 6)
-NPAR_EXT = NPAR + 6
+P_FB, P_EOCT, P_QX, P_QY, P_ISTAR, P_ALPHA_MB, P_FB_L, P_FB_E, P_FB_S, P_FB_P = range(NPAR, NPAR + 10)
+# P_FB_L / P_FB_E (job 4): extra multipliers on the two feedback channels, dL/dt|SL (L) and de/dt|SL (E); default 1 = A16
+# P_FB_S / P_FB_P (job 4, supplementary): within channel E, multipliers on the cos(th) S_hat x e term (rotation of e about S_hat, the partner
+# of channel L) and on the (1 - 5 cos^2)/2 L_hat x e term (in-plane apsidal precession); default 1
+NPAR_EXT = NPAR + 10
 N_EXT = N_ORBIT + N_SPIN + 1  # state length of the extended system
 IDX_PSI_EXT = N_ORBIT + N_SPIN
 N_CORE_EXT = N_ORBIT + N_SPIN  # entries in the step-size error norm (Psi left out, as in advance_diag)
@@ -565,7 +568,8 @@ HALF_OBLIQUITY = 5.0  # (1 - 5 cos^2 theta_sl) in the e-vector feedback term
 
 
 def extend_params(par: np.ndarray, *, fb_mult: float = 1.0, e_b: float = 0.0, phi_b: float = 0.0,
-                  alpha_mb: float = 0.0, octupole: bool = False) -> np.ndarray:
+                  alpha_mb: float = 0.0, octupole: bool = False, fb_l: float = 1.0, fb_e: float = 1.0,
+                  fb_s: float = 1.0, fb_p: float = 1.0) -> np.ndarray:
     """Copy of par with the opt-in entries. par[P_AB] stays a_b,eff (it sets t_k); with `octupole` the real separation is
     a_b = a_b,eff / sqrt(1 - e_b^2) and eps_oct = (M* - Mp)/(M* + Mp) (a / a_b) e_b / (1 - e_b^2), stored per AU of a."""
     out = np.zeros(NPAR_EXT)
@@ -573,6 +577,7 @@ def extend_params(par: np.ndarray, *, fb_mult: float = 1.0, e_b: float = 0.0, ph
     out[P_FB] = fb_mult
     out[P_ISTAR] = par[P_KS] * par[P_MSTAR] * par[P_RSTAR] ** 2
     out[P_ALPHA_MB] = alpha_mb
+    out[P_FB_L], out[P_FB_E], out[P_FB_S], out[P_FB_P] = fb_l, fb_e, fb_s, fb_p
     if octupole:
         a_b_real = par[P_AB] / math.sqrt(1.0 - e_b * e_b)
         mass_ratio = (par[P_MSTAR] - par[P_MP]) / (par[P_MSTAR] + par[P_MP])
@@ -645,13 +650,15 @@ def spin_ext_terms(y, par, lmag, j, a, out):
     out[o + 1] = ops * c1 - damp * y[o + 1]
     out[o + 2] = ops * c2 - damp * y[o + 2]
     fb = par[P_FB]
+    fb_l = fb * par[P_FB_L]  # x 1.0 is exact, so the default path is bit-identical
+    mult_s, mult_p = par[P_FB_E] * par[P_FB_S], par[P_FB_E] * par[P_FB_P]
     for i, ci in enumerate((c0, c1, c2)):
-        out[i] += -fb * ops * ci
+        out[i] += -fb_l * ops * ci
     wdot = smag / lmag * alpha
     sxe = cross3(sh0, sh1, sh2, y[3], y[4], y[5])
     lxe = cross3(lh0, lh1, lh2, y[3], y[4], y[5])
     for i in range(3):
-        out[3 + i] += -fb * wdot * (cs * sxe[i] + 0.5 * (1.0 - HALF_OBLIQUITY * cs * cs) * lxe[i])
+        out[3 + i] += -fb * wdot * (mult_s * cs * sxe[i] + mult_p * 0.5 * (1.0 - HALF_OBLIQUITY * cs * cs) * lxe[i])
     out[IDX_PSI_EXT] = alpha * cs
 
 

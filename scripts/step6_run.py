@@ -14,7 +14,9 @@ Per case writes (results/step6/<case>/, or <case>_pilot/ with --pilot N):
   series.npz              s<index> = member-0 series in the step 5 format (t, a, e_min, amplitude, p, Psi of member 0, then
                           p, Psi of the middle member and of the twin at THEIR OWN k-th minima, NaN padded)
   series_members.npz      s<index> = (11, rows, 6) per-member (t, a, e_min, amplitude, p, Psi), each on its own orbit
-Run:  uv run python scripts/step6_run.py --case b [--pilot 20] [--procs 10]
+Run:  uv run python scripts/step6_run.py --case b [--pilot 20] [--procs 10] [--max-minutes 85]
+Cases b_P / b_F (job 4, supplementary): b split along the Hamiltonian instead, apsidal precession only / orbit rotation about S only.
+Cases b_L / b_E (job 4): case b with only the dL/dt|SL channel (L) or only the de/dt|SL channel (E); see config [step6.cases].
 """
 
 import argparse
@@ -36,7 +38,11 @@ CFG6 = _ALL["step6"]
 STEP5_DIR = S.ROOT / CFG5["results"]
 OUT_DIR = S.ROOT / CFG6["results"]
 CASES = {"b": {"octupole": False, "spindown": False}, "c": {"octupole": True, "spindown": False},
-         "d": {"octupole": True, "spindown": True}}
+         "d": {"octupole": True, "spindown": True}, "b_L": {"octupole": False, "spindown": False},
+         "b_E": {"octupole": False, "spindown": False}, "b_P": {"octupole": False, "spindown": False},
+         "b_F": {"octupole": False, "spindown": False}}
+CASE_MULTS = CFG6["cases"]  # per-case feedback-channel multipliers (job 4); cases b, c, d use 1, 1 (A16)
+SECONDS_PER_MINUTE = 60.0
 OUT_MIXED = S.ST_STEPS + 1  # members of one system ended differently
 OUTCOME_NAMES = (*S.STATUS_NAMES, "mixed")
 INPUT_FIELDS = ("m_p_mjup", "p_star_days", "a_b_au", "theta_lb0_deg")
@@ -59,8 +65,10 @@ def draw_binary(n_sample: int) -> tuple[np.ndarray, np.ndarray]:
 
 def case_params(case: str, par: np.ndarray, e_b: float, phi_b: float) -> np.ndarray:
     flags = CASES[case]
+    mults = CASE_MULTS.get(case, {"fb_l": 1.0, "fb_e": 1.0})
     return S.extend_params(par, fb_mult=CFG6["fb_mult"], e_b=e_b, phi_b=phi_b, octupole=flags["octupole"],
-                           alpha_mb=CFG6["alpha_mb_yr"] if flags["spindown"] else 0.0)
+                           alpha_mb=CFG6["alpha_mb_yr"] if flags["spindown"] else 0.0, fb_l=mults["fb_l"], fb_e=mults["fb_e"],
+                           fb_s=mults.get("fb_s", 1.0), fb_p=mults.get("fb_p", 1.0))
 
 
 def twin_ext(y0: np.ndarray, angle_rad: float) -> np.ndarray:
@@ -85,6 +93,11 @@ def run_member(par: np.ndarray, cfg: dict, theta_lb0: float, p_days: float, twin
     y_init = twin_ext(y0, CFG5["twin_angle_rad"]) if twin else y0
     res = S.run_ext(y_init, par, cfg["stop_t_gyr"] * 1e9, ev_max=CFG5["ev_max"])
     return res
+
+
+def cos_l_e(y: np.ndarray) -> float:
+    """cos of the angle between l and e at the end of a run (0 for a consistent orbit; job 4 diagnostic for the one-channel cases)."""
+    return float(y[:3] @ y[3:6] / (np.linalg.norm(y[:3]) * np.linalg.norm(y[3:6])))
 
 
 def outcome_of(status: np.ndarray) -> int:
@@ -148,7 +161,7 @@ def integrate_system(case: str, m_p: float, p_star: float, a_b: float, theta_lb0
     out = {"status": status, "outcome": outcome_of(status), "t_end": np.array([r["t"] for r in results]),
            "steps": np.array([r["steps"] for r in results]), "n_events": np.array([r["ev"].shape[0] for r in results]),
            "wall_members": np.array(walls), "wall_s": float(sum(walls)), "cpu_s": float(sum(cpus)), "e_b": e_b, "phi_b": phi_b,
-           "eps_oct0": float(par[S.P_EOCT] * cfg["a0_au"])}
+           "eps_oct0": float(par[S.P_EOCT] * cfg["a0_au"]), "cos_le_end": np.array([cos_l_e(r["y"]) for r in results])}
     if out["outcome"] != S.ST_HOT_JUPITER:
         return out
     out.update(hot_jupiter_features(results))
@@ -167,10 +180,12 @@ def chunk_path(case: str, pilot: int, i: int) -> Path:
 
 
 def work_item(args: tuple) -> str:
-    case, pilot, i, m_p, p_star, a_b, theta, e_b, phi_b = args
+    case, pilot, deadline, i, m_p, p_star, a_b, theta, e_b, phi_b = args
     path = chunk_path(case, pilot, i)
     if path.exists():
         return f"skip {i}"
+    if deadline and time.time() > deadline:
+        return f"deferred {i}"
     out = integrate_system(case, m_p, p_star, a_b, theta, e_b, phi_b)
     tmp = path.with_suffix(".tmp.npz")
     np.savez(tmp, **out)
@@ -178,7 +193,7 @@ def work_item(args: tuple) -> str:
     return f"done {i} {OUTCOME_NAMES[out['outcome']]} {out['wall_s']:.1f}s"
 
 
-def build_items(case: str, pilot: int, table: dict, n: int) -> list:
+def build_items(case: str, pilot: int, table: dict, n: int, deadline: float) -> list:
     e_b_all, phi_all = draw_binary(CFG5["n_sample"])
     flags = CASES[case]
     items = []
@@ -186,7 +201,7 @@ def build_items(case: str, pilot: int, table: dict, n: int) -> list:
         idx = int(table["index"][i])
         e_b = float(e_b_all[idx]) if flags["octupole"] else 0.0
         phi_b = float(phi_all[idx]) if flags["octupole"] else 0.0
-        items.append((case, pilot, i, *(float(table[k][i]) for k in INPUT_FIELDS), e_b, phi_b))
+        items.append((case, pilot, deadline, i, *(float(table[k][i]) for k in INPUT_FIELDS), e_b, phi_b))
     return items
 
 
@@ -241,16 +256,23 @@ def main() -> None:
     ap.add_argument("--case", choices=sorted(CASES), required=True)
     ap.add_argument("--pilot", type=int, default=0, help="run only the first N systems, into results/step6/<case>_pilot")
     ap.add_argument("--procs", type=int, default=CFG6["n_procs"])
+    ap.add_argument("--max-minutes", type=float, default=0.0,
+                    help="stop starting new systems after this many minutes (0 = no limit); relaunch to continue, finished systems are skipped")
     args = ap.parse_args()
     table = step5_table()
     n = args.pilot if args.pilot else table["index"].size
     chunk_dir(args.case, args.pilot).mkdir(parents=True, exist_ok=True)
-    items = build_items(args.case, args.pilot, table, n)
     t0 = time.time()
-    with mp.Pool(min(args.procs, CFG6["n_procs"])) as pool:
+    deadline = t0 + args.max_minutes * SECONDS_PER_MINUTE if args.max_minutes else 0.0
+    items = build_items(args.case, args.pilot, table, n, deadline)
+    with mp.Pool(args.procs) as pool:
         for k, msg in enumerate(pool.imap_unordered(work_item, items, chunksize=1)):
-            if k % 50 == 0:
+            if k % 50 == 0 or msg.startswith("deferred"):
                 print(k, msg, flush=True)
+    n_left = sum(not chunk_path(args.case, args.pilot, i).exists() for i in range(n))
+    if n_left:
+        print(f"{n_left} of {n} systems still to run: relaunch the same command", flush=True)
+        return
     report(args.case, merge(args.case, args.pilot, table, n, time.time() - t0), n)
 
 

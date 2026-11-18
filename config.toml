@@ -152,6 +152,19 @@ sq5_n_bins = 10                # ASSUMED: log-spaced S/L bins between the sample
 sq5_fraction_levels = [0.1, 0.5]   # brief: class-change fractions to locate
 results_sq5 = "results/step10"
 
+[step6.cases]
+# Job 4: split the feedback into its two A16 channels. Multipliers on top of fb_mult; cases b, c, d are not listed (both 1).
+#   (L) dL/dt|SL = Omega_ps S x L_hat: L_hat precesses about S_hat (also moves e_max through the orbit orientation)
+#   (E) de/dt|SL = -omega_dot*[...]: periastron precession from the stellar quadrupole (changes e_max via the precession)
+b_L = { fb_l = 1.0, fb_e = 0.0 }   # case b with channel L only
+b_E = { fb_l = 0.0, fb_e = 1.0 }   # case b with channel E only
+# Supplementary split along the Hamiltonian H_SL(theta_sl): b_L and b_E each rotate l or e about S_hat without the other, so l.e = 0 is
+# lost (job 4 found |cos(l, e)| > 0.1 at the end of about 55% of the runs). These two keep l.e = 0 exactly:
+#   fb_s scales the cos(theta) S_hat x e term of channel E (rotation of e about S_hat, partner of channel L), fb_p the
+#   (1 - 5 cos^2)/2 L_hat x e term (in-plane apsidal precession)
+b_P = { fb_l = 0.0, fb_e = 1.0, fb_s = 0.0, fb_p = 1.0 }   # apsidal precession only
+b_F = { fb_l = 1.0, fb_e = 1.0, fb_s = 1.0, fb_p = 0.0 }   # everything except apsidal precession: l and e rotate together about S_hat
+
 [prep_sq2]
 # Prep job 1 (data for SQ2 theory): branch probabilities and peak locations of class I systems from phase ensembles.
 # Physics comes from [step4] (SRFs + weak-friction tides, no feedback, e_b = 0). "task" = the prep-job task text given by the main agent.

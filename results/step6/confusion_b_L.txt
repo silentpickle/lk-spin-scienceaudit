@@ -1,0 +1,14 @@
+predicted \ observed (v2)      I     II    III     IV      V  total
+                         I    306      2    164      0      0    472
+                        II     15     51     32      0      0     98
+                        IV      2     43    276     14      3    338
+family agreement: 371 / 908 = 0.409
+
+class transition (a) -> case, paired systems:
+(a) \ case       I     II    III     IV      V  total
+          I    299      0     92      0      0    391
+         II     18     71     42      0      0    131
+        III      6     13    233      0      0    252
+         IV      0     10    105     14      0    129
+          V      0      2      0      0      3      5
+changed: 288 / 908

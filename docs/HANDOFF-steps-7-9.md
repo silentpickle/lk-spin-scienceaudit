@@ -76,3 +76,5 @@ Compute-only groundwork is ready:
 - **SQ2.** Converged branch probabilities and peaks for the four fiducials and 16 class I systems, and the misaligned-spin peak shifts (`results/prep_sq2/`). Use $P_\star$ jitter, not $\omega_0$, as the phase variable. Low-$\bar{\mathcal A}_0$ systems need wider sampling.
 - **SQ4.** FTLE scans, sections and an $\hat\Omega_L$ test in the frozen-shape system (`results/prep_sq4/`). S16's 87° chaos is already present at $t=0$ up to 9.7 d. At fixed $N_{\max,0}$, $\hat\Omega_L\ge0.21$ is a sharp chaos threshold. Use FTLE, not $\theta_{sl}$ spread, to identify chaos.
 - **Sensitivity.** Our 5% coefficient offset from S16 is $R_\star$ ($\propto R_\star^3$). The 30 d branch is generic phase sensitivity.
+
+- **Feedback channels (findings 08).** Apsidal precession from the stellar quadrupole is what stops migration. The rotation of the orbit about $\hat S$ is what changes outcome classes; on its own it reproduces the full SQ5 curve. When splitting feedback terms, keep $\mathbf L$ and $\mathbf e$ rotating together (cases b_P / b_F), or $\mathbf e$ leaves the orbit plane.

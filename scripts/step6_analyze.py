@@ -27,7 +27,9 @@ OUT = W.OUT_DIR
 FAMILIES = C5.FAMILIES
 MIN_TRAIN_PER_BIN = 3  # theta-only baseline: bins are cut to keep this many training systems per bin (pilot sizes only)
 CHANGED_MARKER = "x"
-CASE_LABELS = {"a": "(a) no feedback", "b": "(b) feedback", "c": "(c) feedback + octupole", "d": "(d) feedback + octupole + spin-down"}
+CASE_LABELS = {"a": "(a) no feedback", "b": "(b) feedback", "c": "(c) feedback + octupole", "d": "(d) feedback + octupole + spin-down",
+               "b_L": "(b_L) channel L only", "b_E": "(b_E) channel E only",
+               "b_P": "(b_P) apsidal precession only", "b_F": "(b_F) all but apsidal precession"}
 
 
 def nan_to_none(obj):
