@@ -7,3 +7,4 @@ results/step4/chunks/
 results/**/chunks/
 results/**/series*.npz
 results/step11/state/
+data_download/

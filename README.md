@@ -35,6 +35,12 @@ The brief's work plan, step by step:
     scripts/fetch_sources.sh        # pinned arXiv LaTeX sources, hash-checked (kept out of git)
     uv run pytest                   # fast checks
     shasum -a 256 -c docs/SHA256SUMS
+    scripts/fetch_data.sh           # optional: the raw series, chunks and N-body checkpoints (about 4.8 GB), checksum-verified
+
+**Data:** every result in the findings is backed by data in git or in the
+[`v0.1-first-results` release](https://github.com/silentpickle/lk-spin-scienceaudit/releases/tag/v0.1-first-results).
+[`docs/DATA.md`](docs/DATA.md) lists each archive: what it holds, which script wrote it, which scripts read it, its
+checksum, and how to take the work in a different direction without rerunning anything.
 
 Each findings file lists the scripts that produce its results; every script writes to `results/`.
 Tools and versions: [`docs/TOOLING.md`](docs/TOOLING.md).
