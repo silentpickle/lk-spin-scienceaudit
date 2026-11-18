@@ -68,7 +68,8 @@ Runs are cheap: one migrating system takes 0.5–10 s. The full step 5 sample of
 - **SQ5:** with back-reaction on, the outcome class changes for more than 10% of systems above $S/L\approx0.11$ and more than 50% above 0.59, with $S/L$ at the first $e_{\max}$.
 - **A16's printed octupole $d\mathbf L/dt$ (Eq. Lvec, l.1763) has $(\mathbf e\cdot\hat L_b)$ in place of $(\mathbf e\cdot\hat e_b)$ twice.** The corrected form is implemented and checked against conservation laws and REBOUND (findings 05).
 - **The classifier was never re-validated with back-reaction.** v2 was hand-validated only without it. Check it before relying on IV versus II there.
-- **Large intermediates are not in git, because they regenerate.** These are `results/**/series*.npz` and the `chunks/` directories. `scripts/step5_run.py` takes about 3 minutes on an idle machine; `scripts/step6_run.py --case {b,c,d}` takes about 45 minutes under load. Classification (`step5_classify.py`, `step6_analyze.py`) needs the series.
+- **Large intermediates are not in git.** These are `results/**/series*.npz` and the `chunks/` directories. Since 2026-11-18 they are on the `v0.1-first-results` release: fetch them with `scripts/fetch_data.sh`, as described in `docs/DATA.md`, rather than regenerating them. Classification (`step5_classify.py`, `step6_analyze.py`) needs the series.
+- **Kickoff prompt for the Fable session:** [`HANDOFF-fable-prompt.md`](HANDOFF-fable-prompt.md).
 
 ## Prepared data (2026-11-18, findings 07)
 
